@@ -12,8 +12,8 @@ and may not be redistributed without written permission.*/
 
 
 //Screen dimension constants
-const int SCREEN_WIDTH = 1500;
-const int SCREEN_HEIGHT = 780;
+const int SCREEN_WIDTH = 1200;
+const int SCREEN_HEIGHT = 680;
 
 //Starts up SDL and creates window
 bool init();
@@ -119,10 +119,16 @@ int main( int argc, char* args[] ) {
     // load our image
 	img = IMG_LoadTexture(renderer, "loaded2.jpg");
 	SDL_QueryTexture(img, NULL, NULL, &w, &h);
-	SDL_Rect texr; texr.x = 0; texr.y = 0; texr.w = 1; texr.h = 1;
+	SDL_Rect texr; texr.x = 0; texr.y = 0; texr.w = SCREEN_WIDTH/150; texr.h = SCREEN_HEIGHT/150;
 
+	int i = 0;
     for (const auto & entry : std::filesystem::directory_iterator("images"))
-        std::cout << entry.path() << std::endl;
+    {
+        if (i == 700)
+            break;
+        images[i] = IMG_LoadTexture(renderer, entry.path().string().c_str());
+        std::cout << i++ << std::endl;
+    }
 
     Timer t;
 	int avg = 0;
@@ -150,6 +156,17 @@ int main( int argc, char* args[] ) {
         }
 
         clearScreen( renderer );
+
+        t.start();
+        for (int i=0; i<150; i++) {
+            for (int j=0; j<150; j++){
+                texr.x = SCREEN_WIDTH/150 * j;
+                SDL_RenderCopy(renderer, images[std::rand()%700], NULL, &texr);
+            }
+            texr.y = SCREEN_HEIGHT/150 * i;
+        }
+
+        std::cout << t.get() << std::endl;
 
         // copy the texture to the rendering context
         SDL_RenderCopy(renderer, img, NULL, &texr);
