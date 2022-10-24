@@ -10,6 +10,8 @@ and may not be redistributed without written permission.*/
 #include <chrono>
 #include <filesystem>
 
+#include <vips/vips8>
+
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1200;
@@ -36,7 +38,6 @@ bool init(SDL_Window** window_ptr, SDL_Surface** surface_ptr, SDL_Renderer** ren
     *window_ptr = SDL_CreateWindow( "imageVimage", SDL_WINDOWPOS_UNDEFINED,
                                SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
                                 SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
-    SDL_Delay(100);
     if( *window_ptr == NULL ) {
         printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
         return false;
@@ -124,19 +125,28 @@ int main( int argc, char* args[] ) {
 	int i = 0;
     for (const auto & entry : std::filesystem::directory_iterator("images"))
     {
-        if (i == 700)
+        if (i == 10) //626
             break;
         images[i] = IMG_LoadTexture(renderer, entry.path().string().c_str());
         std::cout << i++ << std::endl;
     }
 
     Timer t;
+    Timer t2;
 	int avg = 0;
 	int n = 1;
-    float scale = 0;
+    float scale = 1;
     //Main game loop.
-    while(!quit) {
+    t.start();
+    int g = 0;
+    for (int i = 0; i < 1000000000; i++){
+        g = g + 10;
+    }
 
+    std::cout << t.get() << std::endl;
+
+    quit = true;
+    while(!quit) {
         //Handle events on queue
         while( SDL_PollEvent( &e ) != 0 )
         {
@@ -145,34 +155,31 @@ int main( int argc, char* args[] ) {
             {
                 quit = true;
             } else if (e.type == SDL_MOUSEWHEEL) {
-                if(e.wheel.y > 0){ // scroll up
-                    scale += e.wheel.preciseX;
-                }
-                else if(e.wheel.y < 0){ // scroll down
-                    scale -= e.wheel.preciseY;
-                }
+                scale = scale + e.wheel.preciseY;
+                texr.w = SCREEN_WIDTH/150 * scale;
+                texr.h = SCREEN_HEIGHT/150 * scale;
+                //std::cout << scale << std::endl;
 
             }
         }
-
         clearScreen( renderer );
 
         t.start();
         for (int i=0; i<150; i++) {
             for (int j=0; j<150; j++){
-                texr.x = SCREEN_WIDTH/150 * j;
-                SDL_RenderCopy(renderer, images[std::rand()%700], NULL, &texr);
+                texr.x = SCREEN_WIDTH/150 * scale * j;
+                //SDL_RenderCopy(renderer, images[(i*j*163)%626], NULL, &texr);
+                SDL_RenderCopy(renderer, images[1], NULL, &texr);
             }
-            texr.y = SCREEN_HEIGHT/150 * i;
+            texr.y = SCREEN_HEIGHT/150 * scale * i;
         }
-
         std::cout << t.get() << std::endl;
 
-        // copy the texture to the rendering context
-        SDL_RenderCopy(renderer, img, NULL, &texr);
-
+        t2.start();
         SDL_RenderPresent( renderer );
-        SDL_Delay(10);
+
+        std::cout << "render " << t2.get() << std::endl;
+
     }
     close(&window);
 
