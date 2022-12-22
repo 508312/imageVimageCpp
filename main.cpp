@@ -2,6 +2,7 @@
 and may not be redistributed without written permission.*/
 
 //Using SDL and standard IO
+#include <vips/vips8>
 #include <SDL.h>
 #include <SDL_image.h>
 #include <stdio.h>
@@ -10,7 +11,10 @@ and may not be redistributed without written permission.*/
 #include <chrono>
 #include <filesystem>
 
-#include <vips/vips8>
+
+#define VIPS_DEBUG
+#define VIPS_DEBUG_VERBOSE
+
 
 
 //Screen dimension constants
@@ -93,6 +97,10 @@ int Timer::get() {
 
 
 int main( int argc, char* args[] ) {
+    std::cout << VIPS_INIT(args[0]) << std::endl << std::endl;
+
+    vips::VImage in = vips_image_new_from_file ("loaded.png", "access", VIPS_ACCESS_SEQUENTIAL, NULL);
+
     //The window we'll be rendering to
     SDL_Window* window = NULL;
 
@@ -106,6 +114,8 @@ int main( int argc, char* args[] ) {
     SDL_Event e;
 
     SDL_Texture* images[700];
+
+    vips::VImage vimages[700];
 
     //Main loop flag
     bool quit = false;
@@ -122,30 +132,66 @@ int main( int argc, char* args[] ) {
 	SDL_QueryTexture(img, NULL, NULL, &w, &h);
 	SDL_Rect texr; texr.x = 0; texr.y = 0; texr.w = SCREEN_WIDTH/150; texr.h = SCREEN_HEIGHT/150;
 
-	int i = 0;
-    for (const auto & entry : std::filesystem::directory_iterator("images"))
-    {
-        if (i == 10) //626
-            break;
-        images[i] = IMG_LoadTexture(renderer, entry.path().string().c_str());
-        std::cout << i++ << std::endl;
-    }
-
     Timer t;
     Timer t2;
 	int avg = 0;
 	int n = 1;
     float scale = 1;
-    //Main game loop.
+
     t.start();
-    int g = 0;
-    for (int i = 0; i < 1000000000; i++){
-        g = g + 10;
+    int i = 0;
+    for (const auto & entry : std::filesystem::directory_iterator("images"))
+    {
+        if (i == 620) //626
+            break;
+        //images[i] = IMG_LoadTexture(renderer, entry.path().string().c_str());
+        vimages[i] = vips_image_new_from_file (entry.path().string().c_str(), "access", VIPS_ACCESS_SEQUENTIAL, NULL);
+        vimages[i].resize(0.99);
+        // std::cout << i++ << std::endl;
     }
 
-    std::cout << t.get() << std::endl;
 
-    quit = true;
+    std::cout << "time " <<t.get() << std::endl;
+
+    size_t res_size;
+
+    int* data = NULL;
+    std::cout << "here1";
+    t.start();
+
+    /*
+    SDL_Surface* sur = SDL_CreateRGBSurfaceFrom(data, in.width(),
+                                                 in.height(), 4 * 8, in.width() * 4 * 8,
+                                                 0xFF0000, 0x00FF00, 0x0000FF, 0x000000);
+    std::cout << "here2";
+
+    std::cout << std::endl << SDL_GetError() << std::endl;
+    SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, sur);
+
+    std::cout << "here3";
+    */
+
+
+    SDL_Texture* buffer = SDL_CreateTexture(renderer,
+                           SDL_PIXELFORMAT_RGB24,
+                           SDL_TEXTUREACCESS_STREAMING,
+                           in.width(),
+                           in.height());
+
+    int pitch = NULL;
+
+    SDL_LockTexture(buffer, NULL, (void **) &data, &pitch);
+
+    int* data2 = (int*) in.write_to_memory(&res_size);
+
+    memcpy(data, data2, res_size);
+
+    SDL_UnlockTexture(buffer);
+
+    std::cout << "time " <<t.get() << std::endl;
+
+    //Main game loop.
+    quit = false;
     while(!quit) {
         //Handle events on queue
         while( SDL_PollEvent( &e ) != 0 )
@@ -165,6 +211,7 @@ int main( int argc, char* args[] ) {
         clearScreen( renderer );
 
         t.start();
+        /*
         for (int i=0; i<150; i++) {
             for (int j=0; j<150; j++){
                 texr.x = SCREEN_WIDTH/150 * scale * j;
@@ -173,6 +220,11 @@ int main( int argc, char* args[] ) {
             }
             texr.y = SCREEN_HEIGHT/150 * scale * i;
         }
+        */
+
+
+        SDL_RenderCopy(renderer, buffer, NULL, NULL);
+
         std::cout << t.get() << std::endl;
 
         t2.start();
