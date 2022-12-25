@@ -127,6 +127,7 @@ int main( int argc, char* args[] ) {
         if (i == 620) //626
             break;
         //images[i] = IMG_LoadTexture(renderer, entry.path().string().c_str());
+        std::cout << entry.path().string() << std::endl;
         vimages[i] = vips_image_new_from_file (entry.path().string().c_str(), "access", VIPS_ACCESS_SEQUENTIAL, NULL);
         //vimages[i].resize(0.99);
         // std::cout << i++ << std::endl;
