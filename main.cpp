@@ -10,7 +10,7 @@ and may not be redistributed without written permission.*/
 #include <string>
 #include <chrono>
 #include <filesystem>
-
+#include <Timer.h>
 
 #define VIPS_DEBUG
 #define VIPS_DEBUG_VERBOSE
@@ -73,33 +73,15 @@ void clearScreen(SDL_Renderer* renderer) {
     SDL_RenderClear( renderer );
 }
 
-class Timer {
-    std::chrono::time_point<std::chrono::steady_clock> startT;
-    public:
-        void start();
-        int get();
-        Timer();
-};
-
-Timer::Timer() { }
-
-void Timer::start() {
-    startT = std::chrono::steady_clock::now();
-}
-
-int Timer::get() {
-    std::chrono::time_point<std::chrono::steady_clock> endT = std::chrono::steady_clock::now();
-
-    std::chrono::microseconds diff = std::chrono::duration_cast<std::chrono::microseconds>(endT - startT);
-
-    return diff.count();
-}
-
-
 int main( int argc, char* args[] ) {
     std::cout << VIPS_INIT(args[0]) << std::endl << std::endl;
 
+
     vips::VImage in = vips_image_new_from_file ("loaded.png", "access", VIPS_ACCESS_SEQUENTIAL, NULL);
+
+    //vips::VImage::new_from_file( "loaded.png", vips::VImage::option() ->set( "access", "sequential" ) );
+
+    std::cout << "Is image null: " << in.is_null() << std::endl;
 
     //The window we'll be rendering to
     SDL_Window* window = NULL;
@@ -146,16 +128,15 @@ int main( int argc, char* args[] ) {
             break;
         //images[i] = IMG_LoadTexture(renderer, entry.path().string().c_str());
         vimages[i] = vips_image_new_from_file (entry.path().string().c_str(), "access", VIPS_ACCESS_SEQUENTIAL, NULL);
-        vimages[i].resize(0.99);
+        //vimages[i].resize(0.99);
         // std::cout << i++ << std::endl;
     }
-
-
-    std::cout << "time " <<t.get() << std::endl;
+    std::cout << "time " << t.get() << std::endl;
+    std::cout << in.width() << std::endl;
 
     size_t res_size;
 
-    int* data = NULL;
+    void* data = NULL;
     std::cout << "here1";
     t.start();
 
@@ -180,9 +161,9 @@ int main( int argc, char* args[] ) {
 
     int pitch = NULL;
 
-    SDL_LockTexture(buffer, NULL, (void **) &data, &pitch);
+    SDL_LockTexture(buffer, NULL, &data, &pitch);
 
-    int* data2 = (int*) in.write_to_memory(&res_size);
+    void* data2 = in.write_to_memory(&res_size);
 
     memcpy(data, data2, res_size);
 
