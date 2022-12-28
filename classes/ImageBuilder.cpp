@@ -1,6 +1,7 @@
 #include "ImageBuilder.h"
 #include "CompositeImage.h"
 #include <filesystem>
+#include <iostream>
 
 ImageBuilder::ImageBuilder() {
     //ctor
@@ -24,25 +25,31 @@ void ImageBuilder::build_images() {
 void ImageBuilder::build_image(int ind) {
     CompositeImage* closest;
     int parts = images[ind].get_num_parts();
+    color crop_clr;
+    int left, top;
 
+    std::cout << "got here 1" << std::endl;
     for (int i=0; i < parts; i++) {
+        top = i * (height/parts);
         for (int j = 0; j < parts; j++) {
-            closest = find_closest_image(ind);
+            left = j * (width/parts);
+
+            closest = find_closest_image(ind, images[ind].crop_avg_color(left, top, width/parts, height/parts));
             images[ind].push_to_grid(closest);
         }
     }
 }
-// TODO WHAT THE FUCK DID I DO LMAO LOL FUCK CROPS CROPS CROPS AND AVERAGES N STUFF
-CompositeImage* ImageBuilder::find_closest_image(int ind) {
+
+CompositeImage* ImageBuilder::find_closest_image(int ind, color clr) {
     int best_index = 0;
-    float best_distance = 10000;
+    float best_distance = 200000;
     float distance;
 
     for (int i=0; i < get_num_images(); i++) {
         if (i == ind) {
             continue;
         }
-        distance = images[i].get_distance_to_img(&images[ind]);
+        distance = images[i].get_distance_to_color(clr);
         if (distance < best_distance) {
             best_index = i;
         }
@@ -57,7 +64,8 @@ int ImageBuilder::get_num_images() {
 
 void ImageBuilder::load_images(std::string path) {
     for (const auto & entry : std::filesystem::directory_iterator(path)) {
-        images.push_back(CompositeImage(num_parts, entry.path().string()));
+        std::cout << entry.path().string() << std::endl;
+        images.push_back(CompositeImage(num_parts, entry.path().string(), width, height));
     }
 }
 

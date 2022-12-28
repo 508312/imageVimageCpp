@@ -164,7 +164,7 @@ int main( int argc, char* args[] ) {
 
     SDL_LockTexture(buffer, NULL, &data, &pitch);
 
-    void* data2 = in.write_to_memory(&res_size);
+    void* data = in.write_to_memory(&res_size);
 
     memcpy(data, data2, res_size);
 

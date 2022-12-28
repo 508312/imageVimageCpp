@@ -21,17 +21,20 @@ class ImageBuilder {
 
         std::vector<CompositeImage>* get_images();
 
-        CompositeImage* find_closest_image(int index);
+        CompositeImage* find_closest_image(int ind, color clr);
 
     protected:
 
     private:
-        void build_image(int index);
+        void build_image(int ind);
         void load_image_original(std::string name);
 
         std::vector<CompositeImage> images;
 
         int num_parts;
+
+        int width;
+        int height;
 
 };
 
