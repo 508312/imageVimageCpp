@@ -47,7 +47,7 @@ CompositeImage* ImageBuilder::find_closest_image(int ind, color clr) {
 
     for (int i=0; i < get_num_images(); i++) {
         if (i == ind) {
-            continue;
+            //continue;
         }
         distance = images[i].get_distance_to_color(clr);
         if (distance < best_distance) {

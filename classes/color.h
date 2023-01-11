@@ -4,9 +4,9 @@
 
 struct color
 {
-    unsigned char r;
-    unsigned char g;
-    unsigned char b;
+    float r;
+    float g;
+    float b;
 };
 
 #endif // COLOR_H

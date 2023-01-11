@@ -7,9 +7,9 @@
 
 ImageBuilderCimplementation::ImageBuilderCimplementation() {
     //ctor
-    num_parts = 60;
-    width = 1920;
-    height = 1080;
+    num_parts = 120;
+    width = 1600;
+    height = 1600;
 }
 
 ImageBuilderCimplementation::ImageBuilderCimplementation(int parts) {
@@ -24,14 +24,14 @@ void ImageBuilderCimplementation::build_images() {
     for (int i = 0; i < get_num_images(); i++) {
         images[i].load_into_mem();
     }
-    std::unordered_map<std::string, VipsImage**> mymap;
+    std::unordered_map<std::string, VipsImage*> mymap;
 
     for (int i = 0; i < get_num_images(); i++) {
-        build_image(i, mymap);
+        build_image(i, &mymap);
     }
 }
 
-void ImageBuilderCimplementation::build_image(int ind, std::unordered_map<std::string, VipsImage**> memo) {
+void ImageBuilderCimplementation::build_image(int ind, std::unordered_map<std::string, VipsImage*>* memo) {
     CompositeImageCimplementation* closest;
     int parts = images[ind].get_num_parts();
     color crop_clr;

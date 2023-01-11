@@ -18,8 +18,8 @@ and may not be redistributed without written permission.*/
 
 
 //Screen dimension constants
-const int SCREEN_WIDTH = 1200;
-const int SCREEN_HEIGHT = 680;
+const int SCREEN_WIDTH = 1000;
+const int SCREEN_HEIGHT = 1000;
 
 //Starts up SDL and creates window
 bool init();
@@ -120,6 +120,9 @@ int main( int argc, char* args[] ) {
 	int n = 1;
     float scale = 1;
 
+    VipsImage* imgtex;
+
+
     t.start();
     int i = 0;
     for (const auto & entry : std::filesystem::directory_iterator("images"))
@@ -127,17 +130,38 @@ int main( int argc, char* args[] ) {
         if (i == 620) //626
             break;
         //images[i] = IMG_LoadTexture(renderer, entry.path().string().c_str());
-        std::cout << entry.path().string() << std::endl;
-        vimages[i] = vips_image_new_from_file (entry.path().string().c_str(), "access", VIPS_ACCESS_SEQUENTIAL, NULL);
+        //std::cout << entry.path().string() << std::endl;
+        imgtex = vips_image_new_from_file (entry.path().string().c_str(), "access", VIPS_ACCESS_SEQUENTIAL, NULL);
         //vimages[i].resize(0.99);
-        // std::cout << i++ << std::endl;
+        //vips_thumbnail(entry.path().string().c_str(), &imgtex, 200, NULL);
+
+        images[i] = SDL_CreateTexture(renderer,
+                           SDL_PIXELFORMAT_RGB24,
+                           SDL_TEXTUREACCESS_STREAMING,
+                           vips_image_get_width(imgtex),
+                           vips_image_get_height(imgtex));
+
+
+        int pitch = NULL;
+        void* data = NULL;
+
+        size_t res_size;
+
+        SDL_LockTexture(images[i], NULL, &data, &pitch);
+
+        void* data2 = vips_image_write_to_memory(imgtex, &res_size);
+
+        memcpy(data, data2, res_size);
+
+        SDL_UnlockTexture(images[i]);
+
+        std::cout << i++ << std::endl;
     }
     std::cout << "time " << t.get() << std::endl;
     std::cout << in.width() << std::endl;
 
     size_t res_size;
 
-    void* data = NULL;
     std::cout << "here1";
     t.start();
 
@@ -161,16 +185,18 @@ int main( int argc, char* args[] ) {
                            in.height());
 
     int pitch = NULL;
+    void* data = NULL;
+    t.start();
 
     SDL_LockTexture(buffer, NULL, &data, &pitch);
 
-    void* data = in.write_to_memory(&res_size);
+    void* data2 = in.write_to_memory(&res_size);
 
     memcpy(data, data2, res_size);
 
     SDL_UnlockTexture(buffer);
 
-    std::cout << "time " <<t.get() << std::endl;
+    std::cout << "time vips->sdl" <<t.get() << std::endl;
 
     //Main game loop.
     quit = false;
@@ -184,28 +210,27 @@ int main( int argc, char* args[] ) {
                 quit = true;
             } else if (e.type == SDL_MOUSEWHEEL) {
                 scale = scale + e.wheel.preciseY;
-                texr.w = SCREEN_WIDTH/150 * scale;
-                texr.h = SCREEN_HEIGHT/150 * scale;
+                texr.w = SCREEN_WIDTH/350 * scale + 1;
+                texr.h = SCREEN_HEIGHT/350 * scale + 1;
                 //std::cout << scale << std::endl;
 
             }
         }
         clearScreen( renderer );
 
+        std::cout << texr.w << " " << texr.h << " "  << std::endl;
+
         t.start();
-        /*
-        for (int i=0; i<150; i++) {
-            for (int j=0; j<150; j++){
-                texr.x = SCREEN_WIDTH/150 * scale * j;
+
+        for (int i=0; i<350; i++) {
+            for (int j=0; j<350; j++){
+                texr.x = SCREEN_WIDTH/350 * scale * j;
                 //SDL_RenderCopy(renderer, images[(i*j*163)%626], NULL, &texr);
-                SDL_RenderCopy(renderer, images[1], NULL, &texr);
+                SDL_RenderCopy(renderer, images[(i*j*163)%615], NULL, &texr);
             }
-            texr.y = SCREEN_HEIGHT/150 * scale * i;
+            texr.y = SCREEN_HEIGHT/350 * scale * i;
         }
-        */
 
-
-        SDL_RenderCopy(renderer, buffer, NULL, NULL);
 
         std::cout << t.get() << std::endl;
 

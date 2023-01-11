@@ -23,7 +23,7 @@ class CompositeImageCimplementation {
 
         std::vector<CompositeImageCimplementation*> get_grid();
 
-        void create_final(std::unordered_map<std::string, VipsImage**> memo);
+        void create_final(std::unordered_map<std::string, VipsImage*>* memo);
 
         void push_to_grid(CompositeImageCimplementation* image);
 
@@ -43,6 +43,7 @@ class CompositeImageCimplementation {
         void load_into_mem();
 
         VipsImage** get_img();
+        VipsImage* get_real_img();
         std::string name;
 
     protected:

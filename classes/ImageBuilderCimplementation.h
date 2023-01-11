@@ -26,7 +26,7 @@ class ImageBuilderCimplementation {
     protected:
 
     private:
-        void build_image(int ind, std::unordered_map<std::string, VipsImage**> memo);
+        void build_image(int ind, std::unordered_map<std::string, VipsImage*>* memo);
         void load_image_original(std::string name);
 
         std::vector<CompositeImageCimplementation> images;
