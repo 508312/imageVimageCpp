@@ -29,15 +29,13 @@ class ImageBuilder {
 
         int get_num_images();
 
-        static void concat_all(int rows, int cols, int width, int height, float final_upscale,
-                                std::unordered_map<CompositeImage*, cv::Mat>& resized_images,
-                                std::vector<CompositeImage*>* grid, cv::Mat& full);
-
         std::vector<CompositeImage>* get_images();
 
         void prune(int ind, std::unordered_map<CompositeImage*, std::vector<pos>> positions,
                         std::unordered_map<CompositeImage*, int>& amounts,
                         std::vector<CompositeImage*>* imgs_abv_thrsh);
+
+        //static void concat_all(std::unordered_map<std::string, cv::Mat> memotable);
 
     protected:
 
@@ -46,7 +44,7 @@ class ImageBuilder {
             TODO: refactor, make ind a set probably, generally make better system */
         static CompositeImage* find_closest_image(int ind, color clr, std::vector<CompositeImage*>* imgs);
 
-        std::unordered_map<CompositeImage*, cv::Mat> resized_images;
+        std::unordered_map<std::string, cv::Mat> resized_images;
         void build_image(int ind);
 
         std::vector<CompositeImage> images;

@@ -31,7 +31,6 @@ class ImageBuilderCimplementation {
 
         std::vector<CompositeImageCimplementation> images;
 
-
         int num_parts;
 
         int width;

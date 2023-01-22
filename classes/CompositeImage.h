@@ -3,7 +3,7 @@
 
 #include <string>
 #include <color.h>
-#include <vips/vips8>
+#include <opencv2/core/core.hpp>
 
 class CompositeImage {
     public:
@@ -17,39 +17,62 @@ class CompositeImage {
 
         int get_num_parts();
 
+        int get_width();
+        int get_height();
+
         color get_avg_color();
         color crop_avg_color(int left, int top, int width, int height);
 
-        std::vector<CompositeImage*> get_grid();
+        std::vector<CompositeImage*>* get_grid();
 
         void push_to_grid(CompositeImage* image);
 
-        float get_distance_to_img(CompositeImage* img2);
+        void change_grid(int x, int y, CompositeImage* image);
+
+        int get_distance_to_img(CompositeImage* img2);
 
         void compute_avg();
 
-        static color image_average(vips::VImage* image);
+        void load_to_mem();
 
-        float get_distance_to_color(color clr);
+        void unload_from_mem();
+
+        static color image_average(cv::Mat* image);
+
+        int get_distance_to_color(color clr);
+
+        std::string get_name();
+
+        cv::Mat load_image();
+
+        cv::Mat* get_image();
+
+        void set_num_unique_images(int num);
+
+        std::string get_extension();
+
+        CompositeImage* get_image_at(int x, int y);
 
     protected:
 
     private:
-        //TODO CIE-L*A*B* implementation in case color change is annoying
-        static float distance(color c1, color c2);
+        static int distance(color c1, color c2);
         int num_parts;
+
+        bool is_loaded = false;
 
         color average;
 
+        int num_unique_images = 0;
 
-        //TODO MIGRATE TO FULL C++, on the time of writing the bindings or smth are fucked and half the functions don't work.
+        int width, height;
+
         std::vector<CompositeImage*> images_grid;
         std::string name;
+        std::string extension;
+        std::string path;
 
-
-        vips::VImage original;
-        vips::VImage compiled;
-
+        cv::Mat stored_image;
 };
 
 #endif // COMPOSITEIMAGE_H
