@@ -1,5 +1,9 @@
 #include "TextureLoader.h"
 #include <iostream>
+#include <opencv2/core/matx.hpp>
+#include <opencv2/core/mat.hpp>
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/opencv.hpp"
 
 TextureLoader::TextureLoader()
 {

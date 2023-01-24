@@ -85,6 +85,7 @@ void ImageBuilder::build_image(int ind) {
     images[ind].unload_from_mem();
 
 
+    /*
     // STUPID COUNTING FOR FUTURE OPTIMIZATION
     std::unordered_map<int, int> counter_of_couters;
 
@@ -102,6 +103,7 @@ void ImageBuilder::build_image(int ind) {
         if (counter_of_couters[i] != 0)
             std::cout << i << " --- " << counter_of_couters[i] << std::endl;
     }
+    */
 
 
     t.start();
@@ -155,13 +157,16 @@ void ImageBuilder::create_final(int ind) {
     cv::imwrite(("folder2\\" + images[ind].get_name() + "_compiled" + images[ind].get_extension()).c_str(), full);
 }
 
+int ImageBuilder::calculate_small_dim(int dim, int parts, float upscale) {
+    return dim/(float)parts * upscale;
+}
 
-// THIS IS REAL UGLY RN, perhaps should refactor later (definetely should).
+// IDK THIS IS MEH, PROLLY NEEDS REFACTORING
 void ImageBuilder::concat_all(int rows, int cols, int width, int height, float final_upscale,
                                 std::unordered_map<CompositeImage*, cv::Mat>& resized_images,
                                 std::vector<CompositeImage*>* grid, cv::Mat& full) {
-    int small_width = width/cols * final_upscale;
-    int small_height = height/rows * final_upscale;
+    int small_width = calculate_small_dim(width, cols, final_upscale);
+    int small_height = calculate_small_dim(height, rows, final_upscale);
 
     cv::Mat harr[cols];
     cv::Mat varr[rows];

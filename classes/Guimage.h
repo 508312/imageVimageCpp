@@ -29,6 +29,8 @@ class Guimage
 
         void draw_detailed();
 
+        void increment_zoom(float zd);
+
     protected:
 
     private:
@@ -39,7 +41,7 @@ class Guimage
 
         // cam's pos
         float cam_x, cam_y;
-        int cam_max_x, cam_max_y, cam_min_x, cam_min_y;
+        float cam_max_x, cam_max_y, cam_min_x, cam_min_y;
 
         int width, height;
 

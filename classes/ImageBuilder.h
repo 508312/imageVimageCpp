@@ -29,6 +29,8 @@ class ImageBuilder {
 
         int get_num_images();
 
+        static int calculate_small_dim(int dim, int parts, float upscale);
+
         static void concat_all(int rows, int cols, int width, int height, float final_upscale,
                                 std::unordered_map<CompositeImage*, cv::Mat>& resized_images,
                                 std::vector<CompositeImage*>* grid, cv::Mat& full);
