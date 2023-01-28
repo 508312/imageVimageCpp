@@ -31,7 +31,7 @@ class ImageBuilder {
 
         static int calculate_small_dim(int dim, int parts, float upscale);
 
-        static void concat_all(int rows, int cols, int width, int height, float final_upscale,
+        static void concat_all(int rows, int cols, float final_upscale,
                                 std::unordered_map<CompositeImage*, cv::Mat>& resized_images,
                                 std::vector<CompositeImage*>* grid, cv::Mat& full);
 
@@ -40,6 +40,10 @@ class ImageBuilder {
         void prune(int ind, std::unordered_map<CompositeImage*, std::vector<pos>> positions,
                         std::unordered_map<CompositeImage*, int>& amounts,
                         std::vector<CompositeImage*>* imgs_abv_thrsh);
+
+        static void fill_table(int num_images, int small_width, int small_height, float final_upscale,
+                                std::unordered_map<CompositeImage*, cv::Mat>* resized_images,
+                                std::vector<CompositeImage*>* images);
 
     protected:
 

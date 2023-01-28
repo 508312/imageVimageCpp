@@ -9,6 +9,7 @@
 #include "CompositeImage.h"
 #include "TextureLoader.h"
 #include "CompositeImage.h"
+#include <vector>
 
 
 class Guimage
@@ -27,17 +28,34 @@ class Guimage
 
         void generate_image();
 
-        void draw_detailed();
+        void generate_image(std::unordered_map<CompositeImage*, cv::Mat> resized);
+
+        void create_detailed(std::unordered_map<CompositeImage*, cv::Mat> resized);
+        void create_detailed();
 
         void increment_zoom(float zd);
+
+        cv::Mat& get_image();
+
+        void set_local_transition_threshold(int thresh);
+
+        bool should_be_drawn();
+
+        void move_cam_pos_based_on_mouse(int cur_x, int cur_y, float delta_z);
 
     protected:
 
     private:
-        float zoom;
-        float inv_zoom;
+        float zoom = 1;
+        float prev_cam_zoom = 1;
+        float inv_zoom = 1;
+
+        std::vector<Guimage> next_images;
+        bool next_image_exists=false;
 
         bool should_be_detailed;
+
+        int local_transition_threshold;
 
         // cam's pos
         float cam_x, cam_y;
@@ -47,9 +65,14 @@ class Guimage
 
         int detail_threshold;
 
+        int num_rows_in_next;
+        int num_cols_in_next;
+
         cv::Rect bounding_frame;
 
         std::string window_name;
+
+        bool off_screen = false;
 
         cv::Mat image_to_render;
 
