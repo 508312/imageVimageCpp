@@ -23,49 +23,41 @@
 
 #include "TextureLoader.h"
 
-#include <SDL.h>
-#include <SDL_image.h>
-
-#include <vips/vips8>
-
 void event_handler(int event, int x, int y, int flags, void* userdata){
    if (event == cv::EVENT_MOUSEWHEEL) {
         std::cout << "calling on " << float(flags/65536) * 0.001 + 1 << std::endl;
-        std::cout << "x " << x << " y " << y << std::endl;
-        //((Guimage*)userdata)->move_cam_pos_based_on_mouse(x, y, float(flags/65536) * 0.001 + 1);
+        std::cout << "calling event on x " << x << " y " << y << std::endl;
+        ((Guimage*)userdata)->move_cam_pos_based_on_mouse(x, y, float(flags/65536) * 0.001 + 1);
         ((Guimage*)userdata)->increment_zoom(float(flags/65536) * 0.0001 + 1);
         ((Guimage*)userdata)->generate_image();
         ((Guimage*)userdata)->show();
    }
 }
 
-
 int main( int argc, char* args[] ) {
-    std::cout << VIPS_INIT(args[0]) << std::endl;
-
     SetProcessDPIAware();
 
     cv::namedWindow( "Display window", cv::WINDOW_NORMAL );
     cv::resizeWindow( "Display window", cv::Size(1600, 1600));
     //cv::setMouseCallback("Display window", locator, NULL);//Mouse callback function on define window//
 
-    TextureLoader test_loader;
+    TextureLoader test_loader({1600, 800, 400, 200, 100, 50});
 
     std::cout << "size of guimage " << sizeof(Guimage) << std::endl;
     std::cout << "size of composite image " << sizeof(CompositeImage) << std::endl;
     std::cout << "size of image builder " << sizeof(ImageBuilder) << std::endl;
 
-    ImageBuilder builder(100, 1600, 1600, 1, 10, &test_loader);
+    ImageBuilder builder(320, 1600, 1600, 1, 10, 1, &test_loader);
     builder.load_images("imgsmall");
     builder.build_images();
 
     std::vector<CompositeImage> images = *(builder.get_images());
 
-    Guimage test(&test_loader, &images[23]);
+    Guimage test(&test_loader, &images[0]);
 
     float zoom = 1;
     test.change_zoom(zoom);
-    test.change_cam_pos(431.231, 765.432);
+    test.change_cam_pos(800, 800);
     test.generate_image();
     test.show();
 
@@ -73,9 +65,17 @@ int main( int argc, char* args[] ) {
     cv::setMouseCallback("Display window", event_handler, &test);
     cv::Mat ii;
 
-
+    for (int i = 0; i < 30; i++) {
+        test.increment_zoom(1.2);
+        test.generate_image();
+        test.show();
+        cv::waitKey(1);
+        //ii = test.get_image();
+        //cv::imwrite("anim/" + std::to_string(i) + ".jpg", ii);
+    }
+    std::cout << "ZOOMED " << std::endl;
     /*
-    for (int i = 0; i < 3990; i++) {
+    for (int i = 0; i < 10; i++) {
         test.increment_zoom(1.12137);
         test.generate_image();
         test.show();
@@ -84,9 +84,8 @@ int main( int argc, char* args[] ) {
         //cv::imwrite("anim/" + std::to_string(i) + ".jpg", ii);
     } */
 
-
     cv::waitKey(0);
-
+    cv::destroyWindow("Display window");
 
     return 0;
 }

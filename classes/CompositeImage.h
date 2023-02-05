@@ -39,7 +39,7 @@ class CompositeImage {
 
         static color image_average(cv::Mat* image);
 
-        int get_distance_to_color(color clr);
+        int get_distance_to_color(const color& clr);
 
         std::string get_name();
 
@@ -53,10 +53,11 @@ class CompositeImage {
 
         CompositeImage* get_image_at(int x, int y);
 
+        static int distance(const color& c1, const color& c2);
+
     protected:
 
     private:
-        static int distance(color c1, color c2);
         int num_parts;
 
         bool is_loaded = false;

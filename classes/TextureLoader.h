@@ -11,6 +11,7 @@ class TextureLoader
 {
     public:
         TextureLoader();
+        TextureLoader(std :: initializer_list <int> resoluts);
         virtual ~TextureLoader();
 
         cv::Mat& get_texture(CompositeImage* image, int width);
@@ -22,9 +23,12 @@ class TextureLoader
     protected:
 
     private:
+        int find_closest_res(int width);
         // arr of tables
         std::unordered_map<std::string, cv::Mat> table;
 
+        std::vector<std::unordered_map<std::string, cv::Mat>> mipmaps;
+        std::vector<int> resolutions;
 };
 
 #endif // TEXTURELOADER_H

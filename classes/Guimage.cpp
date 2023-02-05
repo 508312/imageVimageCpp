@@ -19,9 +19,7 @@ Guimage::Guimage(TextureLoader* texloader, CompositeImage* starting_image) {
 
     window_name = "Display window";
 
-    detail_threshold = 1700;
-
-    bounding_frame = cv::Rect(0, 0, width, height);
+    detail_threshold = 1600;
 
     texture_loader = texloader;
 
@@ -50,7 +48,7 @@ void Guimage::set_local_transition_threshold(int thresh) {
 
 // SUPER MEH MEH CODE
 // PASS RESIZED AS AN ARGUMENT
-void Guimage::create_detailed(std::unordered_map<CompositeImage*, cv::Mat> resized) {
+void Guimage::create_detailed(std::unordered_map<CompositeImage*, cv::Mat>& resized) {
     std::vector<CompositeImage*> to_concat;
 
     float small_img_size_x = composite_image->get_width() / (float)composite_image->get_num_parts();
@@ -85,14 +83,7 @@ void Guimage::create_detailed(std::unordered_map<CompositeImage*, cv::Mat> resiz
             //std::cout << "I " << i << " J " << j << std::endl;
             img = composite_image->get_image_at(i, j);
             if (resized[img].empty()) {
-                /*
-                cv::resize(texture_loader->get_full_texture(img), resized[img],
-                            cv::Size((texture_loader->get_full_texture(img).cols
-                                      - small_img_size_x * zoom)/5,
-                                      (texture_loader->get_full_texture(img).rows
-                                      - small_img_size_y * zoom)/5));
-                */
-                cv::resize(texture_loader->get_full_texture(img), resized[img],
+                cv::resize(texture_loader->get_texture(img, small_img_size_x * zoom), resized[img],
                             cv::Size(small_img_size_x * zoom, small_img_size_y * zoom),
                            0, 0, cv::INTER_LINEAR_EXACT);
             }
@@ -148,8 +139,8 @@ void Guimage::create_detailed(std::unordered_map<CompositeImage*, cv::Mat> resiz
                     int new_cam_x = cam_x - j * small_img_size_x;
                     int new_cam_y = cam_y - i * small_img_size_y;
 
-                    float new_width = std::min((float) (image_to_render.cols - off_x_start*zoom),
-                          (small_img_size_x * (num_x - 2) + start_w + end_w) * zoom);
+                    //float new_width = std::min((float) (image_to_render.cols - off_x_start*zoom),
+                    //      (small_img_size_x * (num_x - 2) + start_w + end_w) * zoom);
 
                     std::cout << "I " << i << " J " << j << " k " << k << std::endl;
                     std::cout << "NEW CAM X CAM Y " << new_cam_x*composite_image->get_num_parts()
@@ -157,9 +148,9 @@ void Guimage::create_detailed(std::unordered_map<CompositeImage*, cv::Mat> resiz
 
                     next_image_exists = true;
                     next_images.push_back(Guimage(texture_loader, to_concat[k]));
-                    next_images[k].change_zoom(new_zoom);
                     next_images[k].change_cam_pos(new_cam_x*composite_image->get_num_parts(),
-                                                   new_cam_y*composite_image->get_num_parts());
+                                                  new_cam_y*composite_image->get_num_parts());
+                    next_images[k].change_zoom(new_zoom);
                     k++;
             }
         }
@@ -171,43 +162,44 @@ void Guimage::generate_image() {
     generate_image(resized);
 }
 
-void Guimage::generate_image(std::unordered_map<CompositeImage*, cv::Mat> resized) {
+void Guimage::generate_image(std::unordered_map<CompositeImage*, cv::Mat>& resized) {
     if(next_image_exists) {
 
         std::vector<int> indexes_to_erase;
 
-        /*   tl    t  X   X
-             l     X  X   X
-             X     X  X   r
-             X     X  b  br */
+        /*   tl    t  X   tr
+             l     X  X   r
+             X     X  X   X
+             bl    b  X   X */
         bool del_top, del_left, del_right, del_bot;
 
-        int br = next_images.size() - 1;
+        int tr = num_cols_in_next - 1;
         int tl = 0;
-        int t = std::min(1, (int)next_images.size() - 1);
-        int l = std::min(num_cols_in_next, (int)next_images.size() - 1);
-        int b = std::max((int)next_images.size() - 2, (int)next_images.size() - 1);
-        int r = std::max((int)next_images.size() - num_cols_in_next - 1, (int)next_images.size() - 1);
+        int t = std::min(1, num_cols_in_next - 1);
+        int l = num_cols_in_next * std::min(1, num_rows_in_next - 1);
+        int bl = num_cols_in_next * (num_rows_in_next - 1);
+        int b = num_cols_in_next * (num_rows_in_next - 1) + std::min(1, num_cols_in_next - 1);
+        int r = num_cols_in_next - 1 + num_cols_in_next * std::min(num_rows_in_next - 1, 1);
 
-        std::cout << "size t l b r br tl" << next_images.size() << t << " " << l << " " << b << " " << r << " " << br << " " << tl << std::endl;
+        //std::cout << "size " << next_images.size() << " t:" << t << " l:" << l << " b:" << b << " r:" << r << " br:" << br << " tl:" << tl << std::endl;
 
         del_top = !(next_images[tl].should_be_drawn()) && !(next_images[t].should_be_drawn());
         del_left = !(next_images[tl].should_be_drawn()) && !(next_images[l].should_be_drawn());
-        del_right = !(next_images[br].should_be_drawn()) && !(next_images[r].should_be_drawn());
-        del_bot = !(next_images[br].should_be_drawn()) && !(next_images[b].should_be_drawn());
-
+        del_bot = !(next_images[bl].should_be_drawn()) && !(next_images[b].should_be_drawn());
+        del_right = !(next_images[tr].should_be_drawn()) && !(next_images[r].should_be_drawn());
+        //std::cout << "dt " << del_top << " dl " << del_left << " dr " << del_right << " db " << del_bot << std::endl;
         for (int i = 0; i < next_images.size(); i++) {
             if (next_images[i].should_be_drawn())
                 continue;
             indexes_to_erase.push_back(i);
         }
 
-        std::cout << "B4 " << num_cols_in_next << " " << num_rows_in_next << std::endl;
+        // std::cout << "B4 " << num_cols_in_next << " " << num_rows_in_next << std::endl;
 
         num_cols_in_next = num_cols_in_next - del_left - del_right;
         num_rows_in_next = num_rows_in_next - del_bot - del_top;
 
-        std::cout << "AFT " << num_cols_in_next << " " << num_rows_in_next << std::endl;
+        // std::cout << "AFT " << num_cols_in_next << " " << num_rows_in_next << std::endl;
 
         for (int i = 0; i < indexes_to_erase.size(); i++) {
             next_images.erase(next_images.begin() + indexes_to_erase[i] - i);
@@ -287,8 +279,8 @@ cv::Mat& Guimage::get_image() {
 }
 
 void Guimage::update_cam_bounds(){
-    float half_w = width * inv_zoom * 0.5;
-    float half_h = height * inv_zoom * 0.5;
+    float half_w = 0.5 * width / zoom;
+    float half_h = 0.5 * height / zoom;
 
     cam_max_x = std::min(cam_x + half_w, (float) width);
     cam_min_x = std::max((float) 0, cam_x - half_w);
@@ -313,13 +305,15 @@ void Guimage::move_cam_pos_based_on_mouse(int cur_x, int cur_y, float delta_z) {
             next_images[i].move_cam_pos_based_on_mouse(cur_x, cur_y, delta_z);
         return;
     }
+    std::cout << "new_cur_x " << cur_x/(zoom*delta_z) << " old x corrected " << cur_x/zoom << std::endl;
+    std::cout << "old min x " << cam_x - width/(2*zoom) << " new min x "
+    << (cam_x - width/(2*zoom)) + cur_x/zoom - cur_x/(zoom*delta_z) << std::endl;
 
-    float new_min_x = cam_min_x + cur_x/zoom - cur_x/(zoom*delta_z);
-    float new_min_y = cam_min_y + cur_y/zoom - cur_y/(zoom*delta_z);
+    double new_min_x = (cam_x - width/(2*zoom)) + cur_x/zoom - cur_x/(zoom*delta_z); // 0 + 800 - 400  400
+    double new_min_y = (cam_y - height/(2*zoom)) + cur_y/zoom - cur_y/(zoom*delta_z);
 
-
-    float new_x = new_min_x/2 + (new_min_x + width / (zoom * delta_z)/2);
-    float new_y = new_min_y/2 + (new_min_y + height / (zoom * delta_z)/2);
+    float new_x = (new_min_x + width / (zoom * delta_z * 2));
+    float new_y = (new_min_y + height / (zoom * delta_z * 2));
 
     std::cout << "X: " << new_x << " Y: " << new_y << std::endl;
 
@@ -345,9 +339,7 @@ void Guimage::increment_zoom(float zd) {
 }
 
 void Guimage::change_zoom(float z) {
-    prev_cam_zoom = zoom;
     zoom = std::max(z, (float)-1000);
-    inv_zoom = 1/zoom;
     if (zoom * width > detail_threshold) {
         should_be_detailed = true;
     } else {

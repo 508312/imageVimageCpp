@@ -17,7 +17,7 @@ class ImageBuilder {
 
         ImageBuilder();
 
-        ImageBuilder(int parts, int w, int h, int fin_up, int prune, TextureLoader* texl);
+        ImageBuilder(int parts, int w, int h, int fin_up, int prune, int closeness, TextureLoader* texl);
 
         virtual ~ImageBuilder();
 
@@ -48,25 +48,45 @@ class ImageBuilder {
     protected:
 
     private:
-        /* Finds closest image to specified clr. Ignores image under ind.
-            TODO: refactor, make ind a set probably, generally make better system */
+        /** Finds closest image to specified clr. Ignores image under ind.
+        *  TODO: refactor, make ind a set probably, generally make better system
+        */
         static CompositeImage* find_closest_image(int ind, color clr, std::vector<CompositeImage*>* imgs);
-
-        std::unordered_map<CompositeImage*, cv::Mat> resized_images;
         void build_image(int ind);
 
-        std::vector<CompositeImage> images;
-        std::vector<CompositeImage*> pointers_to_images;
+        /// Memo table for resized images.
+        std::unordered_map<CompositeImage*, cv::Mat> resized_images;
 
+        /// List of all images.
+        std::vector<CompositeImage> images;
+        /** List of pointers to images.
+         *  One problem may arise from original list being resized due to adding new image,
+         *  This should be taken in account when scaling function to support compiling on the fly images.
+         */
+         std::vector<CompositeImage*> pointers_to_images;
+
+        /// Number of parts to divide the image on.
         int num_parts;
 
+        /// Width to resize original images to.
         int width;
+        /// Height to resize original images to.
         int height;
 
+        /// By how much to upscale @width and @height in the compiled image.
         float final_upscale;
 
+        /*** Replace images whose amount is less than this threshold.
+         With a value of 10 image still looks good, and quite fast.
+        */
         int prune_threshold = 0;
+        /***Threshold below which to just take previous image when compiling composition.
+            Good value to use is 1. 2 is acceptable.
+            For 4 the artifacts are visible and not worth the speedup.
+         */
+        int closeness_threshold = 0;
 
+        /// Texture loader to which load textures after compiling.
         TextureLoader* tex_loader;
 
 };

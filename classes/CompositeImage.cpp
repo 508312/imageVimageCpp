@@ -78,12 +78,15 @@ int CompositeImage::get_distance_to_img(CompositeImage* img2) {
     return distance(get_avg_color(), img2->get_avg_color());
 }
 
-int CompositeImage::get_distance_to_color(color clr) {
+int CompositeImage::get_distance_to_color(const color& clr) {
     return distance(get_avg_color(), clr);
 }
 
-int CompositeImage::distance(color c1, color c2) {
-    return (c2.r-c1.r) * (c2.r-c1.r) + (c2.g-c1.g) * (c2.g-c1.g) + (c2.b-c1.b) * (c2.b-c1.b);
+int CompositeImage::distance(const color& c1, const color& c2) {
+    int red = c2.r - c1.r;
+    int green = c2.g - c1.g;
+    int blue = c2.b - c1.b;
+    return red * red + green * green + blue * blue;
 }
 
 color CompositeImage::get_avg_color() {

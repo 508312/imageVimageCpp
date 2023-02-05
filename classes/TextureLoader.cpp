@@ -7,7 +7,16 @@
 
 TextureLoader::TextureLoader()
 {
-    //ctor
+    resolutions.push_back(1600);
+    mipmaps.push_back(std::unordered_map<std::string, cv::Mat>{});
+}
+
+TextureLoader::TextureLoader(std::initializer_list<int> resoluts)
+{
+    for (int res : resoluts) {
+        resolutions.push_back(res);
+        mipmaps.push_back(std::unordered_map<std::string, cv::Mat>{});
+    }
 }
 
 TextureLoader::~TextureLoader()
@@ -15,14 +24,31 @@ TextureLoader::~TextureLoader()
     //dtor
 }
 
+int TextureLoader::find_closest_res(int width) {
+    int best = 99999;
+    int best_ind = -1;
+    for (int i = 0; i < resolutions.size(); i++) {
+        if (abs(width - resolutions[i]) < best) {
+            best = abs(width - resolutions[i]);
+            best_ind = i;
+        }
+    }
+    return best_ind;
+}
+
 cv::Mat& TextureLoader::get_texture(CompositeImage* image, int width) {
-    return table[image->get_name()];
+    return mipmaps[find_closest_res(width)][image->get_name()];
 }
 
 cv::Mat& TextureLoader::get_full_texture(CompositeImage* image) {
-    return table[image->get_name()];
+    return mipmaps[0][image->get_name()];
 }
 
 void TextureLoader::set_texture(CompositeImage* image, cv::Mat texture) {
-    table[image->get_name()] = texture;
+    for (int i = 0; i < resolutions.size(); i++) {
+        float scale = (float)resolutions[i]/texture.cols;
+        cv::resize(texture, texture, cv::Size(0, 0),
+                    scale, scale, cv::INTER_AREA);
+        mipmaps[i][image->get_name()] = texture.clone();
+    }
 }

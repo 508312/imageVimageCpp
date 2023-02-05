@@ -28,9 +28,9 @@ class Guimage
 
         void generate_image();
 
-        void generate_image(std::unordered_map<CompositeImage*, cv::Mat> resized);
+        void generate_image(std::unordered_map<CompositeImage*, cv::Mat>& resized);
 
-        void create_detailed(std::unordered_map<CompositeImage*, cv::Mat> resized);
+        void create_detailed(std::unordered_map<CompositeImage*, cv::Mat>& resized);
         void create_detailed();
 
         void increment_zoom(float zd);
@@ -47,7 +47,6 @@ class Guimage
 
     private:
         float zoom = 1;
-        float prev_cam_zoom = 1;
         float inv_zoom = 1;
 
         std::vector<Guimage> next_images;
@@ -67,8 +66,6 @@ class Guimage
 
         int num_rows_in_next;
         int num_cols_in_next;
-
-        cv::Rect bounding_frame;
 
         std::string window_name;
 

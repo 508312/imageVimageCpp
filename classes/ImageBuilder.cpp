@@ -20,14 +20,16 @@ ImageBuilder::ImageBuilder() {
     height = 1600;
     final_upscale = 2;
     prune_threshold = 10;
+    closeness_threshold = 1;
 }
 
-ImageBuilder::ImageBuilder(int parts, int w, int h, int fin_up, int prune, TextureLoader* texl) {
+ImageBuilder::ImageBuilder(int parts, int w, int h, int fin_up, int prune, int closeness, TextureLoader* texl) {
     num_parts = parts;
     width = w;
     height = h;
     final_upscale = fin_up;
     prune_threshold = prune;
+    closeness_threshold = closeness;
     tex_loader = texl;
 }
 
@@ -49,31 +51,50 @@ void ImageBuilder::build_images() {
 }
 
 void ImageBuilder::build_image(int ind) {
-    CompositeImage* closest;
+    CompositeImage* closest = nullptr;
     int parts = images[ind].get_num_parts();
     color crop_clr;
     int left, top;
     pos p;
 
-    Timer t;
     std::unordered_map<CompositeImage*, int> counter;
 
     std::unordered_map<CompositeImage*, std::vector<pos>> positions;
     std::vector<CompositeImage*> images_above_threshold;
 
+    Timer t;
+
     images[ind].load_to_mem();
     t.start();
+
+    // TEMP for debug. LATER will need to optimize finding closest by checking top and left neighbor.
+    color left_avg;
+    color* top_avgs = new color[parts];
+
+    color avg;
+    bool is_left, is_top;
+    Timer t1;
+    int t1tot = 0;
     for (int i=0; i < parts; i++) {
         top = i * (height/parts);
         for (int j = 0; j < parts; j++) {
             left = j * (width/parts);
 
-            color avg = images[ind].crop_avg_color(left, top, width/parts, height/parts);
+            avg = images[ind].crop_avg_color(left, top, width/parts, height/parts);
 
-            closest = find_closest_image(ind, avg, &pointers_to_images);
+            if (i != 0 && j != 0) {
+                if (CompositeImage::distance(avg, left_avg) < closeness_threshold) {
+                    closest = images[ind].get_image_at(i, j - 1);
+                }
+                else if (CompositeImage::distance(avg, top_avgs[j]) < closeness_threshold)
+                    closest = images[ind].get_image_at(i - 1, j);
+            }
+            t1.start();
+            if (closest == nullptr)
+                closest = find_closest_image(ind, avg, &pointers_to_images);
+            t1tot += t1.get();
 
             counter[closest] += 1;
-
             if (counter[closest] < prune_threshold) {
                 p.x = i;
                 p.y = j;
@@ -82,13 +103,18 @@ void ImageBuilder::build_image(int ind) {
                 positions[closest].clear();
                 images_above_threshold.push_back(closest);
             }
-
+            left_avg = avg;
+            top_avgs[j] = avg;
             images[ind].push_to_grid(closest);
+            closest = nullptr;
         }
+
     }
+    delete[] top_avgs;
     prune(ind, positions, counter, &images_above_threshold);
 
     std::cout << "composing " << ind << " " << images[ind].get_name() << " done " << t.get() << std::endl;
+    std::cout << "finding closest total " << t1tot << std::endl;
     images[ind].unload_from_mem();
 
 
@@ -126,7 +152,8 @@ void ImageBuilder::prune(int ind, std::unordered_map<CompositeImage*, std::vecto
     int parts;
     int total = 0;
     CompositeImage* image;
-    for(std::unordered_map<CompositeImage*, std::vector<pos>>::iterator iter = positions.begin(); iter != positions.end(); ++iter) {
+    for(std::unordered_map<CompositeImage*,std::vector<pos>>::iterator iter = positions.begin();
+                                                                        iter != positions.end(); ++iter) {
         image =  iter->first;
         parts = image->get_num_parts();
         if (positions[image].size() == 0) {
@@ -165,7 +192,7 @@ void ImageBuilder::create_final(int ind) {
 
     tex_loader->set_texture(pointers_to_images[ind], full);
 
-    // cv::imwrite(("folder2\\" + images[ind].get_name() + "_compiled" + images[ind].get_extension()).c_str(), full);
+    //cv::imwrite(("folder2\\" + images[ind].get_name() + "_compiled" + images[ind].get_extension()).c_str(), full);
 }
 
 void ImageBuilder::fill_table(int num_images, int small_width, int small_height, float final_upscale,
@@ -195,8 +222,8 @@ int ImageBuilder::calculate_small_dim(int dim, int parts, float upscale) {
 void ImageBuilder::concat_all(int rows, int cols, float final_upscale,
                                 std::unordered_map<CompositeImage*, cv::Mat>& resized_images,
                                 std::vector<CompositeImage*>* grid, cv::Mat& full) {
-    cv::Mat harr[cols];
-    cv::Mat varr[rows];
+    cv::Mat* harr = new cv::Mat[cols];
+    cv::Mat* varr = new cv::Mat[rows];
 
     Timer t;
     t.start();
@@ -209,6 +236,9 @@ void ImageBuilder::concat_all(int rows, int cols, float final_upscale,
         cv::hconcat(harr, cols, varr[i]);
     }
     cv::vconcat(varr, rows, full);
+
+    delete[] harr;
+    delete[] varr;
     // std::cout << "actual combining " << t.get() << std::endl;
 }
 
