@@ -328,8 +328,9 @@ void Guimage::move_cam_pos_based_on_mouse(int cur_x, int cur_y, float delta_z) {
 
 void Guimage::change_cam_pos(float x, float y) {
     //TODO: edge cases + negative + lol func isn't even finished
-    cam_x = x;
-    cam_y = y;
+    // HMMMMMMMM INTS???
+    cam_x = (int)x;
+    cam_y = (int)y;
 
     update_cam_bounds();
 }
