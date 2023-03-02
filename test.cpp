@@ -41,13 +41,13 @@ int main( int argc, char* args[] ) {
     cv::resizeWindow( "Display window", cv::Size(1600, 1600));
     //cv::setMouseCallback("Display window", locator, NULL);//Mouse callback function on define window//
 
-    TextureLoader test_loader({1600, 800, 400, 200, 100, 50});
+    CVTextureLoader test_loader({1600, 800, 400, 200, 100, 50});
 
     std::cout << "size of guimage " << sizeof(Guimage) << std::endl;
     std::cout << "size of composite image " << sizeof(CompositeImage) << std::endl;
     std::cout << "size of image builder " << sizeof(ImageBuilder) << std::endl;
 
-    ImageBuilder builder(320, 1600, 1600, 1, 10, 1, &test_loader);
+    ImageBuilder builder(320, 1600, 1600, 1, 3, 1, &test_loader);
     builder.load_images("imgsmall");
     builder.build_images();
 
@@ -65,7 +65,7 @@ int main( int argc, char* args[] ) {
     cv::setMouseCallback("Display window", event_handler, &test);
     cv::Mat ii;
 
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < 10; i++) {
         test.increment_zoom(1.2);
         test.generate_image();
         test.show();
