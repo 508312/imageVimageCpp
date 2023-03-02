@@ -1,5 +1,5 @@
-#ifndef GUIMAGE_H
-#define GUIMAGE_H
+#ifndef SDLGUIMAGE_H
+#define SDLGUIMAGE_H
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/mat.hpp>
@@ -9,15 +9,15 @@
 #include "CompositeImage.h"
 #include "TextureLoader.h"
 #include "CompositeImage.h"
-#include "CVTextureLoader.h"
+#include "SDLTextureLoader.h"
 #include <vector>
 
-
-class Guimage
+class SDLGuimage
 {
-    public:
-        Guimage(CVTextureLoader* texloader, CompositeImage* starting_image);
-        virtual ~Guimage();
+        public:
+
+        SDLGuimage(SDLTextureLoader* texloader, CompositeImage* starting_image, SDL_Renderer* renderer);
+        virtual ~SDLGuimage();
 
         void show();
 
@@ -29,16 +29,9 @@ class Guimage
 
         void generate_image();
 
-        void generate_image(std::unordered_map<CompositeImage*, cv::Mat>& resized);
-
-        void create_proper_detailed(std::unordered_map<CompositeImage*, cv::Mat>& resized);
-
-        void create_detailed(std::unordered_map<CompositeImage*, cv::Mat>& resized);
         void create_detailed();
 
         void increment_zoom(float zd);
-
-        cv::Mat& get_image();
 
         void set_local_transition_threshold(int thresh);
 
@@ -50,9 +43,8 @@ class Guimage
 
     private:
         float zoom = 1;
-        float inv_zoom = 1;
 
-        std::vector<Guimage> next_images;
+        std::vector<SDLGuimage> next_images;
         bool next_image_exists=false;
 
         bool should_be_detailed;
@@ -74,11 +66,11 @@ class Guimage
 
         bool off_screen = false;
 
-        cv::Mat image_to_render;
-
         CompositeImage* composite_image;
 
-        CVTextureLoader* texture_loader;
+        SDLTextureLoader* texture_loader;
+
+        SDL_Renderer* renderer;
 };
 
-#endif // GUIMAGE_H
+#endif // SDLGUIMAGE_H

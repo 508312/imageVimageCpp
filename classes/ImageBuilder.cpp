@@ -23,7 +23,7 @@ ImageBuilder::ImageBuilder() {
     closeness_threshold = 1;
 }
 
-ImageBuilder::ImageBuilder(int parts, int w, int h, int fin_up, int prune, int closeness, TextureLoader* texl) {
+ImageBuilder::ImageBuilder(int parts, int w, int h, int fin_up, int prune, int closeness, TextureSetter* texl) {
     num_parts = parts;
     width = w;
     height = h;
@@ -48,6 +48,7 @@ void ImageBuilder::build_images() {
         create_final(i);
         std::cout << "image " << i << " done " << t.get() << std::endl;
     }
+    resized_images.clear();
 }
 
 void ImageBuilder::build_image(int ind) {
@@ -248,9 +249,11 @@ CompositeImage* ImageBuilder::find_closest_image(int ind, color clr, std::vector
     int distance;
 
     for (int i = 0; i < imgs->size(); i++) {
+        /*
         if (i == ind) {
             continue;
         }
+        */
         distance = (*imgs)[i]->get_distance_to_color(clr);
         if (distance < best_distance) {
             best_index = i;

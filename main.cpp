@@ -32,6 +32,8 @@ void clearScreen(SDL_Renderer* renderer);
 int main( int argc, char* args[] ) {
     SetProcessDPIAware();
 
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
+
     //SDL stuff
     SDL_Window* window = NULL;
     SDL_Surface* screenSurface = NULL;
@@ -50,7 +52,7 @@ int main( int argc, char* args[] ) {
     SDLTextureLoader test_loader({1600, 800, 400, 200, 100, 50, 25}, renderer);
 
     ImageBuilder builder(320, 1600, 1600, 1, 3, 1, &test_loader);
-    builder.load_images("hemtai");
+    builder.load_images("imagesppl2");
     builder.build_images();
 
     std::vector<CompositeImage> images = *(builder.get_images());

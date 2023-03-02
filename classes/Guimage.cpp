@@ -8,7 +8,7 @@
 #include "Timer.h"
 #include "string"
 
-Guimage::Guimage(TextureLoader* texloader, CompositeImage* starting_image) {
+Guimage::Guimage(CVTextureLoader* texloader, CompositeImage* starting_image) {
     //ctor
     width = 1600;
     height = 1600;
@@ -19,7 +19,7 @@ Guimage::Guimage(TextureLoader* texloader, CompositeImage* starting_image) {
 
     window_name = "Display window";
 
-    detail_threshold = 1600;
+    detail_threshold = 2000;
 
     texture_loader = texloader;
 
@@ -85,7 +85,7 @@ void Guimage::create_detailed(std::unordered_map<CompositeImage*, cv::Mat>& resi
             if (resized[img].empty()) {
                 cv::resize(texture_loader->get_texture(img, small_img_size_x * zoom), resized[img],
                             cv::Size(small_img_size_x * zoom, small_img_size_y * zoom),
-                           0, 0, cv::INTER_LINEAR_EXACT);
+                           0, 0, cv::INTER_AREA);
             }
             to_concat.push_back(img);
         }
@@ -93,10 +93,10 @@ void Guimage::create_detailed(std::unordered_map<CompositeImage*, cv::Mat>& resi
     //std::cout << "resizing " << t.get() << " " << small_img_size_x * zoom * num_x << " to_concat size " << to_concat.size() << std::endl;
 
     float error_x = small_img_size_x * zoom * num_x -
-                        ImageBuilder::calculate_small_dim(small_img_size_x * zoom * num_x, num_y, 1) * num_x;
+                        ImageBuilder::calculate_small_dim(small_img_size_x * zoom * num_x, num_x, 1) * num_x;
 
     float error_y = small_img_size_y * zoom * num_y -
-                        ImageBuilder::calculate_small_dim(small_img_size_y * zoom * num_y, num_x, 1) * num_y;
+                        ImageBuilder::calculate_small_dim(small_img_size_y * zoom * num_y, num_y, 1) * num_y;
 
     ImageBuilder::concat_all(num_y, num_x,
                             1, resized, &to_concat, image_to_render);
@@ -105,10 +105,14 @@ void Guimage::create_detailed(std::unordered_map<CompositeImage*, cv::Mat>& resi
     std::cout << "offset " << off_x_start*zoom
       << " \tmin " << std::min((int) (image_to_render.cols - off_x_start*zoom), int(small_img_size_x * zoom * num_x - off_x_start*zoom + end_w*zoom))
       << " \tsmallimgENDW " << (small_img_size_x * num_x - off_x_start + end_w)* zoom << std::endl
+      << " \t small dim " << ImageBuilder::calculate_small_dim(small_img_size_x * zoom * num_x, num_x, 1)
       << " \tsmall_img_size_x " << small_img_size_x
       << " \toff_x_start " << off_x_start
       << " \tend_w " << end_w << std::endl
       << " \tzoom " << zoom
+      << " \tcols alt " << (ImageBuilder::calculate_small_dim(small_img_size_x * zoom * num_x, num_x, 1)
+                             * (num_x - 2) + start_w + end_w) * zoom
+      << " \terror " << error_x
       << " \tcols-off " << image_to_render.cols - off_x_start*zoom << std::endl
       << " \tcols " << image_to_render.cols
       << " \toff_y_start*zoom " << off_y_start*zoom
@@ -119,6 +123,7 @@ void Guimage::create_detailed(std::unordered_map<CompositeImage*, cv::Mat>& resi
     cv::Mat crop(image_to_render, cv::Rect(off_x_start*zoom, off_y_start*zoom,
                 std::min((float) (image_to_render.cols - off_x_start*zoom),
                           (small_img_size_x * (num_x - 2) + start_w + end_w) * zoom),
+    //(ImageBuilder::calculate_small_dim(small_img_size_x * zoom * num_x, num_x, 1) * (num_x) - start_w - end_w))
                 std::min((float) (image_to_render.rows - off_y_start*zoom),
                           (small_img_size_y * (num_y - 2) + start_h + end_h) * zoom)));
     image_to_render = crop;
@@ -132,12 +137,13 @@ void Guimage::create_detailed(std::unordered_map<CompositeImage*, cv::Mat>& resi
         num_rows_in_next = num_y;
 
         float new_zoom = (small_img_size_x * zoom)/(width);
+        float transition_zoom = local_transition_threshold/small_img_size_x;
 
         for (int i = min_y_ind; i < max_y_ind; i++) {
             for (int j = min_x_ind; j < max_x_ind; j++) {
-                    // USES IDEAL THEORETICAL WIDTH AND NOT THE ACTUAL ONE, FIX FIX FIX!!!!
-                    int new_cam_x = cam_x - j * small_img_size_x;
-                    int new_cam_y = cam_y - i * small_img_size_y;
+                    // USES IDEAL THEORETICAL WIDTH AND NOT THE ACTUAL ONE!!!!
+                    int new_cam_x = (cam_x - j * small_img_size_x) * transition_zoom;
+                    int new_cam_y = (cam_y - i * small_img_size_y) * transition_zoom;
 
                     //float new_width = std::min((float) (image_to_render.cols - off_x_start*zoom),
                     //      (small_img_size_x * (num_x - 2) + start_w + end_w) * zoom);
@@ -148,8 +154,8 @@ void Guimage::create_detailed(std::unordered_map<CompositeImage*, cv::Mat>& resi
 
                     next_image_exists = true;
                     next_images.push_back(Guimage(texture_loader, to_concat[k]));
-                    next_images[k].change_cam_pos(new_cam_x*composite_image->get_num_parts(),
-                                                  new_cam_y*composite_image->get_num_parts());
+                    next_images[k].change_cam_pos(new_cam_x,//*composite_image->get_num_parts(),
+                                                  new_cam_y);//*composite_image->get_num_parts());
                     next_images[k].change_zoom(new_zoom);
                     k++;
             }
@@ -320,7 +326,7 @@ void Guimage::move_cam_pos_based_on_mouse(int cur_x, int cur_y, float delta_z) {
     change_cam_pos(new_x, new_y);
 }
 
-void Guimage::change_cam_pos(int x, int y) {
+void Guimage::change_cam_pos(float x, float y) {
     //TODO: edge cases + negative + lol func isn't even finished
     cam_x = x;
     cam_y = y;
@@ -350,4 +356,113 @@ void Guimage::change_zoom(float z) {
 
 void Guimage::show() {
     cv::imshow(window_name, image_to_render);
+}
+
+
+void Guimage::create_proper_detailed(std::unordered_map<CompositeImage*, cv::Mat>& resized) {
+    std::vector<CompositeImage*> to_concat;
+
+    float small_img_size_x = composite_image->get_width() / (float)composite_image->get_num_parts();
+    float small_img_size_y = composite_image->get_height() / (float)composite_image->get_num_parts();
+
+    int min_x_ind = std::max((int)cam_min_x/(int)small_img_size_x,
+                              0);
+    int min_y_ind = std::max((int)cam_min_y/(int)small_img_size_y,
+                              0);
+    int max_x_ind = std::min((int)std::ceil(cam_max_x/small_img_size_x),
+                              composite_image->get_num_parts());
+    int max_y_ind = std::min((int)std::ceil(cam_max_y/small_img_size_y),
+                              composite_image->get_num_parts());
+    int num_x = max_x_ind - min_x_ind;
+    int num_y = max_y_ind - min_y_ind;
+
+
+    float off_x_start = cam_min_x - min_x_ind*small_img_size_x;
+    float start_w = small_img_size_x - off_x_start;
+    float off_y_start = cam_min_y - min_y_ind*small_img_size_y;
+    float start_h = small_img_size_y - off_y_start;
+
+    float end_w = (-(max_x_ind-1)*small_img_size_x + cam_max_x);
+    float end_h = (-(max_y_ind-1)*small_img_size_y + cam_max_y);
+
+    CompositeImage* img;
+    Timer t;
+
+    t.start();
+    for (int i = min_y_ind; i < max_y_ind; i++) {
+        for (int j = min_x_ind; j < max_x_ind; j++) {
+            img = composite_image->get_image_at(i, j);
+            if (resized[img].empty()) {
+                cv::resize(texture_loader->get_texture(img, small_img_size_x * zoom), resized[img],
+                            cv::Size(small_img_size_x * zoom, small_img_size_y * zoom),
+                           0, 0, cv::INTER_AREA);
+            }
+            to_concat.push_back(img);
+        }
+    }
+    //std::cout << "resizing " << t.get() << " " << small_img_size_x * zoom * num_x << " to_concat size " << to_concat.size() << std::endl;
+
+    float error_x = small_img_size_x * zoom * num_x -
+                        ImageBuilder::calculate_small_dim(small_img_size_x * zoom * num_x, num_x, 1) * num_x;
+
+    float error_y = small_img_size_y * zoom * num_y -
+                        ImageBuilder::calculate_small_dim(small_img_size_y * zoom * num_y, num_y, 1) * num_y;
+
+    ImageBuilder::concat_all(num_y, num_x,
+                            1, resized, &to_concat, image_to_render);
+
+    std::cout << "offset " << off_x_start*zoom
+      << " \tmin " << std::min((int) (image_to_render.cols - off_x_start*zoom), int(small_img_size_x * zoom * num_x - off_x_start*zoom + end_w*zoom))
+      << " \tsmallimgENDW " << (small_img_size_x * num_x - off_x_start + end_w)* zoom << std::endl
+      << " \t small dim " << ImageBuilder::calculate_small_dim(small_img_size_x * zoom * num_x, num_x, 1)
+      << " \tsmall_img_size_x " << small_img_size_x
+      << " \toff_x_start " << off_x_start
+      << " \tend_w " << end_w << std::endl
+      << " \tzoom " << zoom
+      << " \tcols alt " << (ImageBuilder::calculate_small_dim(small_img_size_x * zoom * num_x, num_x, 1)
+                             * (num_x - 2) + start_w + end_w) * zoom
+      << " \terror " << error_x
+      << " \tcols-off " << image_to_render.cols - off_x_start*zoom << std::endl
+      << " \tcols " << image_to_render.cols
+      << " \toff_y_start*zoom " << off_y_start*zoom
+      << " \tminHeight " << std::min((int) (image_to_render.rows - off_y_start*zoom), int(small_img_size_y * zoom * num_y - off_y_start*zoom + end_h*zoom))
+      << " \theight " << image_to_render.cols << std::endl;
+
+    int new_width = ImageBuilder::calculate_small_dim(small_img_size_x * zoom * num_x, num_x, 1) * (num_x) - start_w - end_w;
+    int new_height = ImageBuilder::calculate_small_dim(small_img_size_y * zoom * num_y, num_y, 1) * (num_y) - start_h - end_h;
+    cv::Mat crop(image_to_render, cv::Rect(off_x_start*zoom, off_y_start*zoom,
+                std::min((int) (image_to_render.cols - off_x_start*zoom), new_width),
+                std::min((int) (image_to_render.rows - off_y_start*zoom), new_height)));
+    image_to_render = crop;
+
+    //std::cout << " width " << image_to_render.cols << " height " << image_to_render.rows << std::endl;
+
+    //std::cout << "error " << error_x << std::endl;
+    if (small_img_size_x * zoom >= local_transition_threshold && error_x < 1) {
+        int k = 0;
+
+        num_cols_in_next = num_x;
+        num_rows_in_next = num_y;
+
+        float new_zoom = (small_img_size_x * zoom)/(width);
+
+        for (int i = min_y_ind; i < max_y_ind; i++) {
+            for (int j = min_x_ind; j < max_x_ind; j++) {
+                    // USES IDEAL THEORETICAL WIDTH AND NOT THE ACTUAL ONE!!!!
+                    int new_cam_x = cam_x - j * small_img_size_x;
+                    int new_cam_y = cam_y - i * small_img_size_y;
+
+                    std::cout << "I " << i << " J " << j << " k " << k << std::endl;
+                    std::cout << "NEW CAM X CAM Y " << new_cam_x*composite_image->get_num_parts()
+                     << " " << new_cam_y*composite_image->get_num_parts() << " ZOOM " << new_zoom<< std::endl;
+
+                    next_image_exists = true;
+                    next_images.push_back(Guimage(texture_loader, to_concat[k]));
+                    next_images[k].change_cam_pos(new_cam_x*composite_image->get_num_parts(),
+                                                  new_cam_y*composite_image->get_num_parts());
+                    next_images[k].change_zoom(new_zoom);
+                    k++;
+            }
+        }
+    }
 }

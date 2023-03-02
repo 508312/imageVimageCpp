@@ -6,6 +6,7 @@
 #include<string>
 #include <unordered_map>
 #include <TextureLoader.h>
+#include <variant>
 
 // TODO: move from weird ind-passing system to something more robust.
 class ImageBuilder {
@@ -17,7 +18,7 @@ class ImageBuilder {
 
         ImageBuilder();
 
-        ImageBuilder(int parts, int w, int h, int fin_up, int prune, int closeness, TextureLoader* texl);
+        ImageBuilder(int parts, int w, int h, int fin_up, int prune, int closeness, TextureSetter* texl);
 
         virtual ~ImageBuilder();
 
@@ -80,6 +81,7 @@ class ImageBuilder {
          With a value of 10 image still looks good, and quite fast.
         */
         int prune_threshold = 0;
+
         /***Threshold below which to just take previous image when compiling composition.
             Good value to use is 1. 2 is acceptable.
             For 4 the artifacts are visible and not worth the speedup.
@@ -87,7 +89,7 @@ class ImageBuilder {
         int closeness_threshold = 0;
 
         /// Texture loader to which load textures after compiling.
-        TextureLoader* tex_loader;
+        TextureSetter* tex_loader;
 
 };
 
