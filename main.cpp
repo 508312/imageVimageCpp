@@ -22,6 +22,8 @@
 #include "ImageBuilder.h"
 #include "SDLGuimage.h"
 
+#include <cstdlib>
+
 const int SCREEN_WIDTH = 1600;
 const int SCREEN_HEIGHT = 1600;
 
@@ -49,10 +51,10 @@ int main( int argc, char* args[] ) {
     Timer t1;
     Timer t2;
 
-    SDLTextureLoader test_loader({1600, 800, 400, 200, 100, 50, 25}, renderer);
+    SDLTextureLoader test_loader({1600, 800, 400, 200, 100, 50, 25, 10}, renderer);
 
-    ImageBuilder builder(320, 1600, 1600, 1, 3, 1, &test_loader);
-    builder.load_images("imagesppl2");
+    ImageBuilder builder(1600, 1600, 1600, 1, 3, 0, &test_loader);
+    builder.load_images("hemtai");
     builder.build_images();
 
     std::vector<CompositeImage> images = *(builder.get_images());
@@ -75,8 +77,8 @@ int main( int argc, char* args[] ) {
                 int x, y;
                 SDL_GetMouseState(&x, &y);
                 zoom = zoom + event.wheel.preciseY;
-                test.move_cam_pos_based_on_mouse(x, y, event.wheel.preciseY + 1);
-                test.increment_zoom(event.wheel.preciseY + 1);
+                test.move_cam_pos_based_on_mouse(x, y, event.wheel.preciseY * 0.1 + 1);
+                test.increment_zoom(event.wheel.preciseY * 0.1 + 1);
                 //test.change_zoom(zoom);
 
                 test.generate_image();

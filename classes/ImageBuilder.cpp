@@ -84,10 +84,10 @@ void ImageBuilder::build_image(int ind) {
             avg = images[ind].crop_avg_color(left, top, width/parts, height/parts);
 
             if (i != 0 && j != 0) {
-                if (CompositeImage::distance(avg, left_avg) < closeness_threshold) {
+                if (CompositeImage::distance(avg, left_avg) <= closeness_threshold) {
                     closest = images[ind].get_image_at(i, j - 1);
                 }
-                else if (CompositeImage::distance(avg, top_avgs[j]) < closeness_threshold)
+                else if (CompositeImage::distance(avg, top_avgs[j]) <= closeness_threshold)
                     closest = images[ind].get_image_at(i - 1, j);
             }
             t1.start();
@@ -96,7 +96,7 @@ void ImageBuilder::build_image(int ind) {
             t1tot += t1.get();
 
             counter[closest] += 1;
-            if (counter[closest] < prune_threshold) {
+            if (counter[closest] <= prune_threshold) {
                 p.x = i;
                 p.y = j;
                 positions[closest].push_back(p);

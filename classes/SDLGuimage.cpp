@@ -19,7 +19,7 @@ SDLGuimage::SDLGuimage(SDLTextureLoader* texloader, CompositeImage* starting_ima
 
     window_name = "Display window";
 
-    detail_threshold = 2000;
+    detail_threshold = 4000;
 
     texture_loader = texloader;
 
@@ -66,7 +66,8 @@ void SDLGuimage::create_detailed() {
 
     CompositeImage* img;
     SDL_Texture* tex;
-    SDL_Rect texrect = {0, 0, theoretical_x*zoom, theoretical_y*zoom};
+    SDL_Rect texrect = {0, 0, theoretical_x*zoom + 1, theoretical_y*zoom + 1}; // TODO:DELETE GRID ARTIFACTS
+                                // tbh can be done by just adding 1 to w/h, not noticable and fixes grid bug
 
     for (int i = min_y_ind; i < max_y_ind; i++) {
         texrect.y = (i*theoretical_y - cam_min_y) * zoom;
