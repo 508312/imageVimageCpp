@@ -52,7 +52,7 @@ class ImageBuilder {
         /** Finds closest image to specified clr. Ignores image under ind.
         *  TODO: refactor, make ind a set probably, generally make better system
         */
-        static CompositeImage* find_closest_image(int ind, color clr, std::vector<CompositeImage*>* imgs);
+        static CompositeImage* find_closest_image(int ind, color& clr, std::vector<CompositeImage*>* imgs);
         void build_image(int ind);
 
         /// Memo table for resized images.

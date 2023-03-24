@@ -16,7 +16,7 @@ class SDLGuimage
 {
         public:
 
-        SDLGuimage(SDLTextureLoader* texloader, CompositeImage* starting_image, SDL_Renderer* renderer);
+        SDLGuimage(int w, int h, int detail_thresh, SDLTextureLoader* texloader, CompositeImage* starting_image, SDL_Renderer* renderer);
         virtual ~SDLGuimage();
 
         void show();

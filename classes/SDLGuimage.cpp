@@ -8,10 +8,10 @@
 #include "Timer.h"
 #include "string"
 
-SDLGuimage::SDLGuimage(SDLTextureLoader* texloader, CompositeImage* starting_image, SDL_Renderer* renderer) {
+SDLGuimage::SDLGuimage( int w, int h, int detail_thresh, SDLTextureLoader* texloader, CompositeImage* starting_image, SDL_Renderer* renderer) {
     //ctor
-    width = 1600;
-    height = 1600;
+    width = w;
+    height = h;
 
     change_cam_pos(width/2, height/2);
 
@@ -19,7 +19,7 @@ SDLGuimage::SDLGuimage(SDLTextureLoader* texloader, CompositeImage* starting_ima
 
     window_name = "Display window";
 
-    detail_threshold = 4000;
+    detail_threshold = detail_thresh;
 
     texture_loader = texloader;
 
@@ -87,7 +87,7 @@ void SDLGuimage::create_detailed() {
         for (int i = min_y_ind; i < max_y_ind; i++) {
             for (int j = min_x_ind; j < max_x_ind; j++) {
                 img = composite_image->get_image_at(i, j);
-                next_images.push_back(SDLGuimage(texture_loader, img, renderer));
+                next_images.push_back(SDLGuimage(width, height, detail_threshold, texture_loader, img, renderer));
                 next_image_exists = true;
 
                 new_x = (cam_x - j*theoretical_x) * transition_zoom;

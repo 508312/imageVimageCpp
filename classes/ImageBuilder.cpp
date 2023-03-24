@@ -39,9 +39,21 @@ ImageBuilder::~ImageBuilder() {
 
 void ImageBuilder::build_images() {
     Timer t;
+
+    /*
     for (int i = 0; i < get_num_images(); i++) {
         build_image(i);
     }
+    */
+
+    std::vector<int> indexes;
+
+    for (int i = 0; i < images.size(); i++) {
+        images[i].fill_grid_with_empty();
+        indexes.push_back(i);
+    }
+    std::for_each(std::execution::par_unseq, indexes.begin(), indexes.end(), [&](int i){
+              build_image(i);});
 
     for (int i = 0; i < get_num_images(); i++) {
         t.start();
@@ -106,14 +118,16 @@ void ImageBuilder::build_image(int ind) {
             }
             left_avg = avg;
             top_avgs[j] = avg;
-            images[ind].push_to_grid(closest);
+            //images[ind].push_to_grid(closest);
+            images[ind].set_image_at(i, j, closest);
             closest = nullptr;
         }
 
     }
     delete[] top_avgs;
-    prune(ind, positions, counter, &images_above_threshold);
-
+    if (prune_threshold > 0) {
+        prune(ind, positions, counter, &images_above_threshold);
+    }
     std::cout << "composing " << ind << " " << images[ind].get_name() << " done " << t.get() << std::endl;
     std::cout << "finding closest total " << t1tot << std::endl;
     images[ind].unload_from_mem();
@@ -155,7 +169,7 @@ void ImageBuilder::prune(int ind, std::unordered_map<CompositeImage*, std::vecto
     CompositeImage* image;
     for(std::unordered_map<CompositeImage*,std::vector<pos>>::iterator iter = positions.begin();
                                                                         iter != positions.end(); ++iter) {
-        image =  iter->first;
+        image = iter->first;
         parts = image->get_num_parts();
         if (positions[image].size() == 0) {
             continue;
@@ -243,7 +257,7 @@ void ImageBuilder::concat_all(int rows, int cols, float final_upscale,
     // std::cout << "actual combining " << t.get() << std::endl;
 }
 
-CompositeImage* ImageBuilder::find_closest_image(int ind, color clr, std::vector<CompositeImage*>* imgs) {
+CompositeImage* ImageBuilder::find_closest_image(int ind, color& clr, std::vector<CompositeImage*>* imgs) {
     int best_index = 0;
     int best_distance = INT_MAX;
     int distance;
@@ -258,6 +272,10 @@ CompositeImage* ImageBuilder::find_closest_image(int ind, color clr, std::vector
         if (distance < best_distance) {
             best_index = i;
             best_distance = distance;
+            if (distance == 0) {
+
+                break;
+            }
         }
     }
     return (*imgs)[best_index];

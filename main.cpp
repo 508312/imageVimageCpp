@@ -22,6 +22,8 @@
 #include "ImageBuilder.h"
 #include "SDLGuimage.h"
 
+#include <stdlib.h>
+
 #include <cstdlib>
 
 const int SCREEN_WIDTH = 1600;
@@ -53,16 +55,20 @@ int main( int argc, char* args[] ) {
 
     SDLTextureLoader test_loader({1600, 800, 400, 200, 100, 50, 25, 10}, renderer);
 
-    ImageBuilder builder(1600, 1600, 1600, 1, 3, 0, &test_loader);
+    ImageBuilder builder(1600, SCREEN_WIDTH, SCREEN_HEIGHT, 1, 3, 0, &test_loader);
     builder.load_images("hemtai");
-    builder.build_images();
 
-    std::vector<CompositeImage> images = *(builder.get_images());
-    SDLGuimage test(&test_loader, &images[0], renderer);
+    t1.start();
+    builder.build_images();
+    std::cout << "whole process " << t1.get() << std::endl;
+
+    std::vector<CompositeImage>* images = builder.get_images();
+
+    SDLGuimage test(SCREEN_WIDTH, SCREEN_HEIGHT, 3200, &test_loader, &(*images)[0], renderer);
 
     float zoom = 1;
     test.change_zoom(zoom);
-    test.change_cam_pos(800, 800);
+    test.change_cam_pos(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
     test.generate_image();
     SDL_RenderPresent( renderer );
 
@@ -128,3 +134,4 @@ void clearScreen(SDL_Renderer* renderer) {
     SDL_SetRenderDrawColor( renderer, 0x66, 0x66, 0x99, 0xFF );
     SDL_RenderClear( renderer );
 }
+

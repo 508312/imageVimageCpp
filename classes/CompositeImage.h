@@ -37,6 +37,8 @@ class CompositeImage {
 
         void unload_from_mem();
 
+        void fill_grid_with_empty();
+
         static color image_average(cv::Mat* image);
 
         int get_distance_to_color(const color& clr);
@@ -52,6 +54,8 @@ class CompositeImage {
         std::string get_extension();
 
         CompositeImage* get_image_at(int x, int y);
+
+        void set_image_at(int x, int y, CompositeImage* image);
 
         static int distance(const color& c1, const color& c2);
 

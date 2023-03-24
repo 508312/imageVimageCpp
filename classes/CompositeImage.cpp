@@ -34,6 +34,18 @@ CompositeImage::~CompositeImage() {
     //dtor
 }
 
+void CompositeImage::fill_grid_with_empty() {
+    for (int i = 0; i < num_parts; i++) {
+        for (int j = 0; j < num_parts; j++) {
+            images_grid.push_back(nullptr);
+        }
+    }
+}
+
+void CompositeImage::set_image_at(int x, int y, CompositeImage* img) {
+    images_grid[x * num_parts + y] = img;
+}
+
 void CompositeImage::unload_from_mem() {
     is_loaded = false;
     stored_image.release();
@@ -88,6 +100,7 @@ int CompositeImage::distance(const color& c1, const color& c2) {
     int blue = c2.b - c1.b;
     return red * red + green * green + blue * blue;
 }
+
 
 color CompositeImage::get_avg_color() {
     return average;
