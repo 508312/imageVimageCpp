@@ -33,7 +33,7 @@ class ImageBuilder {
         static int calculate_small_dim(int dim, int parts, float upscale);
 
         static void concat_all(int rows, int cols, float final_upscale,
-                                std::unordered_map<CompositeImage*, cv::Mat>& resized_images,
+                                std::unordered_map<std::string, cv::Mat>& resized_images,
                                 std::vector<CompositeImage*>* grid, cv::Mat& full);
 
         std::vector<CompositeImage>* get_images();
@@ -43,8 +43,8 @@ class ImageBuilder {
                         std::vector<CompositeImage*>* imgs_abv_thrsh);
 
         static void fill_table(int num_images, int small_width, int small_height, float final_upscale,
-                                std::unordered_map<CompositeImage*, cv::Mat>* resized_images,
-                                std::vector<CompositeImage*>* images);
+                                std::unordered_map<std::string, cv::Mat>& resized_images,
+                                std::vector<CompositeImage*>& images);
 
     protected:
 
@@ -56,7 +56,7 @@ class ImageBuilder {
         void build_image(int ind);
 
         /// Memo table for resized images.
-        std::unordered_map<CompositeImage*, cv::Mat> resized_images;
+        std::unordered_map<std::string, cv::Mat> resized_images;
 
         /// List of all images.
         std::vector<CompositeImage> images;

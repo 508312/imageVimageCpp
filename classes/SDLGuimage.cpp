@@ -8,14 +8,16 @@
 #include "Timer.h"
 #include "string"
 
-SDLGuimage::SDLGuimage( int w, int h, int detail_thresh, SDLTextureLoader* texloader, CompositeImage* starting_image, SDL_Renderer* renderer) {
+SDLGuimage::SDLGuimage( int w, int h, int row, int col, int detail_thresh,
+                        SDLTextureLoader* texloader, CompositeImage* starting_image,
+                         SDL_Renderer* renderer, SDLGuimage* parent) {
     //ctor
     width = w;
     height = h;
+    self_row = 0;
+    self_col = 0;
 
     change_cam_pos(width/2, height/2);
-
-    local_transition_threshold = width;
 
     window_name = "Display window";
 
@@ -25,8 +27,28 @@ SDLGuimage::SDLGuimage( int w, int h, int detail_thresh, SDLTextureLoader* texlo
 
     composite_image = starting_image;
 
+    local_transition_zoom = width/calculate_small_x();
+
     this->renderer = renderer;
+    this->parent = parent;
+
+    self_row = row;
+    self_col = col;
 }
+
+
+SDLGuimage::SDLGuimage( int w, int h, int row, int col, int detail_thresh,
+                        SDLTextureLoader* texloader, CompositeImage* starting_image,
+                         SDL_Renderer* renderer)
+        : SDLGuimage(w, h, row, col, detail_thresh, texloader, starting_image, renderer, nullptr) {
+
+}
+SDLGuimage::SDLGuimage( int w, int h, int detail_thresh,
+                        SDLTextureLoader* texloader,
+                        CompositeImage* starting_image, SDL_Renderer* renderer)
+        : SDLGuimage(w, h, 0, 0, detail_thresh, texloader, starting_image, renderer, nullptr) {
+}
+
 
 SDLGuimage::~SDLGuimage() {
     //dtor
@@ -44,13 +66,22 @@ bool SDLGuimage::should_be_drawn() {
     return !off_screen;
 }
 
-void SDLGuimage::set_local_transition_threshold(int thresh) {
-    local_transition_threshold = thresh;
+/** Threshold in width **/
+void SDLGuimage::set_local_transition_threshold(int thresh_width) {
+    local_transition_zoom = thresh_width/calculate_small_x();
+}
+
+float SDLGuimage::calculate_small_x() {
+    return composite_image->get_width() / (float)composite_image->get_num_parts();
+}
+
+float SDLGuimage::calculate_small_y() {
+    return composite_image->get_height() / (float)composite_image->get_num_parts();
 }
 
 void SDLGuimage::create_detailed() {
-    float theoretical_x = composite_image->get_width() / (float)composite_image->get_num_parts();
-    float theoretical_y = composite_image->get_height() / (float)composite_image->get_num_parts();
+    float theoretical_x = calculate_small_x();
+    float theoretical_y = calculate_small_y();
 
     int min_x_ind = std::max((int)(cam_min_x/theoretical_x),
                               0);
@@ -79,19 +110,19 @@ void SDLGuimage::create_detailed() {
         }
     }
 
-    if (theoretical_x * zoom >= local_transition_threshold) {
-        float transition_zoom = local_transition_threshold/theoretical_x;
+    if (zoom > local_transition_zoom) {
         float new_zoom = (theoretical_x * zoom)/width;
         float new_x, new_y;
 
         for (int i = min_y_ind; i < max_y_ind; i++) {
             for (int j = min_x_ind; j < max_x_ind; j++) {
                 img = composite_image->get_image_at(i, j);
-                next_images.push_back(SDLGuimage(width, height, detail_threshold, texture_loader, img, renderer));
+                next_images.push_back(SDLGuimage(width, height, i, j, detail_threshold,
+                                                  texture_loader, img, renderer, this));
                 next_image_exists = true;
 
-                new_x = (cam_x - j*theoretical_x) * transition_zoom;
-                new_y = (cam_y - i*theoretical_y) * transition_zoom;
+                new_x = (cam_x - j*theoretical_x) * local_transition_zoom;
+                new_y = (cam_y - i*theoretical_y) * local_transition_zoom;
 
                 next_images[next_images.size() - 1].change_cam_pos(new_x, new_y);
                 next_images[next_images.size() - 1].change_zoom(new_zoom);
@@ -128,6 +159,29 @@ void SDLGuimage::generate_image() {
     }
 }
 
+/** Returns 1 if success or 0 if there is no parent **/
+bool SDLGuimage::switch_to_parent() {
+    if (parent != nullptr) {
+        parent->make_active();
+        return 1;
+    }
+    return 0;
+}
+
+void SDLGuimage::make_active() {
+    clear_next_images();
+    next_image_exists = false;
+}
+
+void SDLGuimage::clear_next_images() {
+    if (next_image_exists) {
+        for (int i=0; i < next_images.size(); i++) {
+            next_images[i].clear_next_images();
+        }
+    }
+    next_images.clear();
+}
+
 //Theoretical cam, becomes smaller, over the image
 void SDLGuimage::update_cam_bounds(){
     float half_w = 0.5 * width / zoom;
@@ -138,7 +192,7 @@ void SDLGuimage::update_cam_bounds(){
     cam_max_y = cam_y + half_h;
     cam_min_y = cam_y - half_h;
     if (cam_max_x < 0 || cam_min_x > width || cam_max_y < 0 || cam_min_y > height) {
-        std::cout << " WENT OFF SCREEN " << std::endl;
+        std::cout << " WENT OFF SCREEN " << self_row << " " << self_col << std::endl;
         off_screen = true;
     }
 }
@@ -160,7 +214,6 @@ void SDLGuimage::move_cam_pos_based_on_mouse(int cur_x, int cur_y, float delta_z
 }
 
 void SDLGuimage::change_cam_pos(float x, float y) {
-    //TODO: edge cases + negative + lol func isn't even finished
     cam_x = x;
     cam_y = y;
 
@@ -169,16 +222,32 @@ void SDLGuimage::change_cam_pos(float x, float y) {
 
 void SDLGuimage::increment_zoom(float zd) {
     if (next_image_exists){
-        for (int i = 0; i < next_images.size(); i++)
+        for (int i = 0; i < next_images.size(); i++) {
+            if (!next_image_exists) {
+                return;
+            }
             next_images[i].increment_zoom(zd);
+        }
         return;
+    }
+    if (zoom * zd < 1) {
+        if (switch_to_parent()) {
+            parent->adjust_back_transition(zoom * zd, self_row, self_col, cam_x, cam_y);
+        }
     }
 
     change_zoom(zoom * zd);
 }
 
+void SDLGuimage::adjust_back_transition(float z, int row, int col, float from_cam_x, float from_cam_y) {
+    change_zoom(local_transition_zoom * z);
+    change_cam_pos(col * calculate_small_x() + from_cam_x / local_transition_zoom,
+                    row * calculate_small_y() + from_cam_y / local_transition_zoom);
+}
+
 void SDLGuimage::change_zoom(float z) {
     zoom = std::max(z, (float)-1000);
+
     if (zoom * width > detail_threshold) {
         should_be_detailed = true;
     } else {

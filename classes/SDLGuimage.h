@@ -16,7 +16,16 @@ class SDLGuimage
 {
         public:
 
-        SDLGuimage(int w, int h, int detail_thresh, SDLTextureLoader* texloader, CompositeImage* starting_image, SDL_Renderer* renderer);
+        SDLGuimage( int w, int h, int row, int col, int detail_thresh,
+                    SDLTextureLoader* texloader, CompositeImage* starting_image,
+                    SDL_Renderer* renderer);
+
+        SDLGuimage( int w, int h, int row, int col, int detail_thresh,
+                    SDLTextureLoader* texloader, CompositeImage* starting_image,
+                    SDL_Renderer* renderer, SDLGuimage* parent);
+
+        SDLGuimage(int w, int h, int detail_thresh, SDLTextureLoader* texloader,
+                    CompositeImage* starting_image, SDL_Renderer* renderer);
         virtual ~SDLGuimage();
 
         void show();
@@ -39,6 +48,16 @@ class SDLGuimage
 
         void move_cam_pos_based_on_mouse(int cur_x, int cur_y, float delta_z);
 
+        float calculate_small_x();
+        float calculate_small_y();
+
+        bool switch_to_parent();
+        void make_active();
+
+        void clear_next_images();
+
+        void adjust_back_transition(float zd, int row, int col, float cam_x, float cam_y);
+
     protected:
 
     private:
@@ -49,7 +68,12 @@ class SDLGuimage
 
         bool should_be_detailed;
 
-        int local_transition_threshold;
+        SDLGuimage* parent;
+
+        int self_row;
+        int self_col;
+
+        float local_transition_zoom;
 
         // cam's pos
         float cam_x, cam_y;

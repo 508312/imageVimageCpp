@@ -52,14 +52,28 @@ void ImageBuilder::build_images() {
         images[i].fill_grid_with_empty();
         indexes.push_back(i);
     }
+
     std::for_each(std::execution::par_unseq, indexes.begin(), indexes.end(), [&](int i){
               build_image(i);});
 
+
+    // EASILY CAN BE MADE SO THAT IT RESIZES ONLY THOSE WHICH IT NEEDS TO(had this b4),
+    // but this is just more readable
+    fill_table(get_num_images(),
+                calculate_small_dim(width, num_parts, final_upscale),
+                calculate_small_dim(height, num_parts, final_upscale),
+                final_upscale, resized_images, pointers_to_images);
+
+    std::for_each(std::execution::par_unseq, indexes.begin(), indexes.end(), [&](int i){
+              create_final(i);});
+
+    /*
     for (int i = 0; i < get_num_images(); i++) {
         t.start();
         create_final(i);
         std::cout << "image " << i << " done " << t.get() << std::endl;
-    }
+    } */
+
     resized_images.clear();
 }
 
@@ -195,13 +209,6 @@ void ImageBuilder::create_final(int ind) {
     std::vector<CompositeImage*>* grid = images[ind].get_grid();
     cv::Mat full;
 
-    // EASILY CAN BE MADE SO THAT IT RESIZES ONLY THOSE WHICH IT NEEDS TO(had this b4),
-    // but this is just more readable
-    fill_table(get_num_images(),
-                calculate_small_dim(width, num_parts, final_upscale),
-                calculate_small_dim(height, num_parts, final_upscale),
-                final_upscale, &resized_images, &pointers_to_images);
-
     std::cout << "concat started " << std::endl;
     concat_all(num_parts, num_parts, final_upscale, resized_images, grid, full);
 
@@ -211,23 +218,38 @@ void ImageBuilder::create_final(int ind) {
 }
 
 void ImageBuilder::fill_table(int num_images, int small_width, int small_height, float final_upscale,
-                                std::unordered_map<CompositeImage*, cv::Mat>* resized_images,
-                                std::vector<CompositeImage*>* images) {
+                                std::unordered_map<std::string, cv::Mat>& resized_images,
+                                std::vector<CompositeImage*>& images) {
+    std::vector<int> indexes;
     for (int i = 0; i < num_images; i++) {
-        CompositeImage* img = (*images)[i];
-        if((*resized_images)[img].empty()) {
-            if (img->get_image() == NULL) {
-                (*resized_images)[img] = img->load_image();
-            } else {
-                (*resized_images)[img] = *img->get_image();
-            }
-            cv::resize((*resized_images)[img], (*resized_images)[img],
-                        cv::Size(small_width, small_height), 0, 0, cv::INTER_AREA);
-
-            std::cout << "RESIZING TO SMALL SIZE, total " << (*resized_images).size() << std::endl;
-
-        }
+        CompositeImage* img = images[i];
+        resized_images[img->get_name()] = NULL;
+        indexes.push_back(i);
     }
+
+    std::for_each(std::execution::par_unseq, indexes.begin(), indexes.end(), [&](int i){
+        CompositeImage* img = images[i];
+
+        if (img->get_image() == NULL) {
+            resized_images[img->get_name()] = img->load_image();
+        } else {
+            resized_images[img->get_name()] = *img->get_image();
+        }
+        cv::resize(resized_images[img->get_name()], resized_images[img->get_name()],
+                cv::Size(small_width, small_height), 0, 0, cv::INTER_AREA);
+        std::cout << "RESIZING TO SMALL SIZE, total " << resized_images.size() << std::endl;
+        });
+
+    /*
+    if(resized_images[img->get_name()].empty()) {
+    if (img->get_image() == NULL) {
+        resized_images[img->get_name()] = img->load_image();
+    } else {
+        resized_images[img->get_name()] = *img->get_image();
+    }
+    cv::resize(resized_images[img->get_name()], resized_images[img->get_name()],
+                cv::Size(small_width, small_height), 0, 0, cv::INTER_AREA);
+    */
 }
 
 int ImageBuilder::calculate_small_dim(int dim, int parts, float upscale) {
@@ -235,7 +257,7 @@ int ImageBuilder::calculate_small_dim(int dim, int parts, float upscale) {
 }
 
 void ImageBuilder::concat_all(int rows, int cols, float final_upscale,
-                                std::unordered_map<CompositeImage*, cv::Mat>& resized_images,
+                                std::unordered_map<std::string, cv::Mat>& resized_images,
                                 std::vector<CompositeImage*>* grid, cv::Mat& full) {
     cv::Mat* harr = new cv::Mat[cols];
     cv::Mat* varr = new cv::Mat[rows];
@@ -246,7 +268,7 @@ void ImageBuilder::concat_all(int rows, int cols, float final_upscale,
         for (int j = 0; j < cols; j++) {
             CompositeImage* img = (*grid)[i * cols + j];
 
-            harr[j] = resized_images[img];
+            harr[j] = resized_images[img->get_name()];
         }
         cv::hconcat(harr, cols, varr[i]);
     }
