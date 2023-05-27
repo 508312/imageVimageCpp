@@ -12,17 +12,16 @@
 #include "opencv2/opencv.hpp"
 #include <functional>
 #include <unordered_map>
-
-CompositeImage::CompositeImage() {
-
-}
-
-CompositeImage::CompositeImage(int parts, std::string path, int w, int h) {
+CompositeImage::CompositeImage(int parts_w, int parts_h, std::string path,
+                                int w, int h, uint16_t index,  std::vector<CompositeImage*>* ind_map) {
     //std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
     name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
     extension = path.substr(path.find_last_of("."), path.length() - path.find_last_of("."));
     this->path = path;
-    this->num_parts = parts;
+    this->num_parts_w = parts_w;
+    this->num_parts_h = parts_h;
+    ind_img_map = ind_map;
+    this->index = index;
 
     width = w;
     height = h;
@@ -35,15 +34,11 @@ CompositeImage::~CompositeImage() {
 }
 
 void CompositeImage::fill_grid_with_empty() {
-    for (int i = 0; i < num_parts; i++) {
-        for (int j = 0; j < num_parts; j++) {
-            images_grid.push_back(nullptr);
-        }
-    }
+    images_grid.resize(num_parts_h*num_parts_w);
 }
 
-void CompositeImage::set_image_at(int x, int y, CompositeImage* img) {
-    images_grid[x * num_parts + y] = img;
+void CompositeImage::set_image_at(int x, int y, uint16_t img) {
+    images_grid[x * num_parts_w + y] = img;
 }
 
 void CompositeImage::unload_from_mem() {
@@ -73,6 +68,10 @@ std::string CompositeImage::get_name() {
     return name;
 }
 
+uint16_t CompositeImage::get_ind() {
+    return index;
+}
+
 cv::Mat* CompositeImage::get_image() {
     if (is_loaded){
         return &stored_image;
@@ -81,7 +80,7 @@ cv::Mat* CompositeImage::get_image() {
     }
 }
 
-std::vector<CompositeImage*>* CompositeImage::get_grid() {
+std::vector<uint16_t>* CompositeImage::get_grid() {
     return &images_grid;
 }
 
@@ -111,7 +110,11 @@ std::string CompositeImage::get_extension(){
 }
 
 CompositeImage* CompositeImage::get_image_at(int x, int y) {
-    return images_grid[x * num_parts + y];
+    return (*ind_img_map)[images_grid[x * num_parts_w + y]];
+}
+
+uint16_t CompositeImage::get_image_index_at(int x, int y) {
+    return images_grid[x * num_parts_w + y];
 }
 
 color CompositeImage::crop_avg_color(int left, int top, int width, int height) {
@@ -139,8 +142,8 @@ color CompositeImage::crop_avg_color(int left, int top, int width, int height) {
     return clr;
 }
 
-void CompositeImage::change_grid(int x, int y, CompositeImage* image) {
-    images_grid[x * num_parts + y] = image;
+void CompositeImage::change_grid(int x, int y, uint16_t image) {
+    images_grid[x * num_parts_w + y] = image;
 }
 
 color CompositeImage::image_average(cv::Mat* image) {
@@ -169,12 +172,19 @@ color CompositeImage::image_average(cv::Mat* image) {
     return c;
 }
 
-void CompositeImage::push_to_grid(CompositeImage* image) {
+void CompositeImage::push_to_grid(uint16_t image) {
     images_grid.push_back(image);
 }
 
 void CompositeImage::set_num_unique_images(int num) {
     num_unique_images = num;
+}
+int CompositeImage::get_num_parts_width() {
+    return num_parts_w;
+}
+
+int CompositeImage::get_num_parts_height() {
+    return num_parts_h;
 }
 
 int CompositeImage::get_width() {
@@ -199,8 +209,4 @@ void CompositeImage::compute_avg() {
     if (free_flag) {
         unload_from_mem();
     }
-}
-
-int CompositeImage::get_num_parts() {
-    return num_parts;
 }

@@ -13,18 +13,25 @@ class TextureLoader : public TextureSetter
 {
     public:
         TextureLoader();
-        TextureLoader(std :: initializer_list <int> resoluts);
+        TextureLoader(std::initializer_list<int> resoluts);
+        TextureLoader(std::initializer_list<int> resoluts, int load_threshold);
+        TextureLoader(std::vector<int>& resoluts);
+        TextureLoader(std::vector<int>& resoluts, int load_threshold);
         virtual ~TextureLoader();
 
         TexType& get_texture(CompositeImage* image, int width);
 
         TexType& get_full_texture(CompositeImage* image);
 
+        void resize_to(int amnt);
+
+        virtual void free_textures();
+
     protected:
         int find_closest_res(int width);
 
-        // arr of tables
-        std::vector<std::unordered_map<std::string, TexType>> mipmaps;
+        // first array is of resolution, second array is of image itself
+        std::vector<std::vector<TexType>> mipmaps;
 
     private:
 };

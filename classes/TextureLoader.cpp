@@ -7,22 +7,52 @@
 
 template <typename TexType>
 TextureLoader<TexType>::TextureLoader() : TextureSetter() {
-    mipmaps.push_back(std::unordered_map<std::string, TexType>{});
-}
-
-template <typename TexType>
-TextureLoader<TexType>::TextureLoader(std::initializer_list<int> resoluts) : TextureSetter(resoluts) {
-    for (int res : resoluts) {
-        mipmaps.push_back(std::unordered_map<std::string, TexType>{});
-    }
+    mipmaps.push_back(std::vector<TexType>{});
 }
 
 template <typename TexType>
 TextureLoader<TexType>::~TextureLoader() {
-    //dtor
 }
+
+template <typename TexType>
+void TextureLoader<TexType>::free_textures() {
+    return;
+}
+
+template <typename TexType>
+TextureLoader<TexType>::TextureLoader(std::initializer_list<int> resoluts) : TextureLoader(resoluts, 0) {
+}
+
+template <typename TexType>
+TextureLoader<TexType>::TextureLoader(std::initializer_list<int> resoluts,
+                                       int load_threshold) : TextureSetter(resoluts, load_threshold) {
+    for (int res : resoluts) {
+        mipmaps.push_back(std::vector<TexType>{});
+    }
+}
+
+template <typename TexType>
+TextureLoader<TexType>::TextureLoader(std::vector<int>& resoluts) : TextureLoader(resoluts, 0) {
+}
+
+template <typename TexType>
+TextureLoader<TexType>::TextureLoader(std::vector<int>& resoluts,
+                                       int load_threshold) : TextureSetter(resoluts, load_threshold) {
+    for (int res : resoluts) {
+        mipmaps.push_back(std::vector<TexType>{});
+    }
+}
+
+template <typename TexType>
+void TextureLoader<TexType>::resize_to(int amnt) {
+    for (int i = 0; i < mipmaps.size(); i++) {
+        mipmaps[i].resize(amnt);
+    }
+}
+
 template <typename TexType>
 int TextureLoader<TexType>::find_closest_res(int width) {
+
     int best = 99999;
     int best_ind = -1;
     for (int i = 0; i < resolutions.size(); i++) {
@@ -32,14 +62,30 @@ int TextureLoader<TexType>::find_closest_res(int width) {
         }
     }
     return best_ind;
+
+    /*
+    int best_ind = resolutions.size() - 1;
+    while (width > resolutions[best_ind - 1] && best_ind > 0) {
+        best_ind--;
+    }
+    return best_ind;
+    */
 }
 
 template <typename TexType>
 TexType& TextureLoader<TexType>::get_texture(CompositeImage* image, int width) {
-    return mipmaps[find_closest_res(width)][image->get_name()];
+    int index = find_closest_res(width);
+    while (mipmaps[index][image->get_ind()] == NULL) {
+        index++;
+    }
+    return mipmaps[index][image->get_ind()];
 }
 
 template <typename TexType>
 TexType& TextureLoader<TexType>::get_full_texture(CompositeImage* image) {
-    return mipmaps[0][image->get_name()];
+    int index = 0;
+    while (mipmaps[index][image->get_ind()] == NULL) {
+        index++;
+    }
+    return mipmaps[0][image->get_ind()];
 }

@@ -7,27 +7,30 @@
 
 class CompositeImage {
     public:
-        CompositeImage();
 
-        CompositeImage(int parts, std::string path, int w, int h);
+        CompositeImage(int parts_w, int parts_h, std::string path,
+                        int w, int h, uint16_t index, std::vector<CompositeImage*>* ind_maps);
 
         virtual ~CompositeImage();
 
-        void compose();
+        /** Returns how much images compose this image horizontally **/
+        int get_num_parts_width();
+        /** Returns how much images compose this image vertically **/
+        int get_num_parts_height();
 
-        int get_num_parts();
-
+        /** Returns width resolution at which image was generated **/
         int get_width();
+        /** Returns height resolution at which image was generated **/
         int get_height();
 
         color get_avg_color();
         color crop_avg_color(int left, int top, int width, int height);
 
-        std::vector<CompositeImage*>* get_grid();
+        std::vector<uint16_t>* get_grid();
 
-        void push_to_grid(CompositeImage* image);
+        void push_to_grid(uint16_t image);
 
-        void change_grid(int x, int y, CompositeImage* image);
+        void change_grid(int x, int y, uint16_t image);
 
         int get_distance_to_img(CompositeImage* img2);
 
@@ -54,25 +57,29 @@ class CompositeImage {
         std::string get_extension();
 
         CompositeImage* get_image_at(int x, int y);
+        uint16_t get_image_index_at(int x, int y);
 
-        void set_image_at(int x, int y, CompositeImage* image);
+        void set_image_at(int x, int y, uint16_t image);
 
         static int distance(const color& c1, const color& c2);
+
+        uint16_t get_ind();
 
     protected:
 
     private:
-        int num_parts;
+        uint16_t num_parts_w;
+        uint16_t num_parts_h;
+        uint16_t width, height;
+        uint16_t num_unique_images = 0;
+        uint16_t index;
+        std::vector<CompositeImage*>* ind_img_map;
 
         bool is_loaded = false;
 
         color average;
 
-        int num_unique_images = 0;
-
-        int width, height;
-
-        std::vector<CompositeImage*> images_grid;
+        std::vector<uint16_t> images_grid;
         std::string name;
         std::string extension;
         std::string path;
