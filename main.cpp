@@ -9,6 +9,7 @@
 #include <chrono>
 #include <filesystem>
 #include <Timer.h>
+#include <stdlib.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/matx.hpp>
@@ -21,42 +22,60 @@
 #include "SDLTextureLoader.h"
 #include "ImageBuilder.h"
 #include "SDLGuimage.h"
+#include "StatsCounter.h"
+#include "ImageSyncer.h"
 
 #include <stdlib.h>
 
 #include <cstdlib>
 
-const int SCREEN_WIDTH = 1600;
-const int SCREEN_HEIGHT = 1600;
-
-bool init(SDL_Window** window_ptr, SDL_Surface** surface_ptr, SDL_Renderer** renderer_ptr);
-void close(SDL_Window** window);
+bool init_sdl(SDL_Window** window_ptr, SDL_Surface** surface_ptr, SDL_Renderer** renderer_ptr,
+               int x_win_res, int y_win_res);
+void init_vars(int argc, char** args, int& x_window, int& y_window,
+               int& x_image, int& y_image, int& parts_x, int& parts_y,
+               int& detail_width, int& local_transition_width, char** render_type,
+               int& prune_threshold, int& closeness_thresh, float& final_upscale,
+               std::vector<int>& resolutions, char** folder);
+void close(SDL_Window** window, SDL_Renderer** renderer, SDL_Surface** screenSurface);
 void clearScreen(SDL_Renderer* renderer);
 
 int main( int argc, char* args[] ) {
+    ImageSyncer imgsync;
     SetProcessDPIAware();
 
-    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
+    int x_win_res, y_win_res, x_img_res, y_img_res, x_img_parts, y_img_parts,
+    detail_width, local_transition_threshold, prune_threshold, closeness_threshold;
+    float final_upscale;
+    std::vector<int> resolutions;
+    char* render_type;
+    char* folder = "qats_small";
 
-    //SDL stuff
+    Timer t1;
+    Timer t2;
+
     SDL_Window* window = NULL;
     SDL_Surface* screenSurface = NULL;
     SDL_Renderer* renderer = NULL;
     SDL_Event event;
     bool running = true;
 
-    if( !init(&window, &screenSurface, &renderer) ) {
-        printf( "Failed to initialize!\n" );
+    init_vars(argc, args, x_win_res, y_win_res, x_img_res, y_img_res, x_img_parts, y_img_parts,
+          detail_width, local_transition_threshold, &render_type, prune_threshold, closeness_threshold,
+          final_upscale, resolutions, &folder);
+
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, render_type);
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+
+    if( !init_sdl(&window, &screenSurface, &renderer, x_win_res, y_win_res) ) {
+        std::cout << "FAILED TO CREATE A WINDOW" << std::endl;
         return 0;
     }
 
-    Timer t1;
-    Timer t2;
+    SDLTextureLoader test_loader(resolutions, renderer, 0);
 
-    SDLTextureLoader test_loader({1600, 800, 400, 200, 100, 50, 25, 10}, renderer);
-
-    ImageBuilder builder(1600, SCREEN_WIDTH, SCREEN_HEIGHT, 1, 3, 0, &test_loader);
-    builder.load_images("hemtai");
+    ImageBuilder builder(x_img_parts, y_img_parts, x_img_res, y_img_res, final_upscale,
+                          prune_threshold, closeness_threshold, &test_loader);
+    builder.load_images(folder);
 
     t1.start();
     builder.build_images();
@@ -64,19 +83,31 @@ int main( int argc, char* args[] ) {
 
     std::vector<CompositeImage>* images = builder.get_images();
 
-    SDLGuimage test(SCREEN_WIDTH, SCREEN_HEIGHT, 3200, &test_loader, &(*images)[0], renderer);
+    t1.start();
+    StatsCounter stats_counter(images);
+    std::cout << "stats took " << t1.get() << std::endl;
+
+    std::cout << "total used: " << stats_counter.get_total()
+     << " total images: " << images->size() <<
+     " reachable from start: " << stats_counter.calc_reachable_from_img(&(*images)[0]) << std::endl;
+
+    SDLGuimage test(x_win_res, y_win_res, detail_width, &test_loader, &(*images)[0], renderer, &stats_counter);
 
     float zoom = 1;
     test.change_zoom(zoom);
-    test.change_cam_pos(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
     test.generate_image();
     SDL_RenderPresent( renderer );
 
+    int crash = 0;
+    std::vector<SDLGuimage*> bottom_level;
+
+    Timer t;
     while(running) {
-        // Events
-        while( SDL_PollEvent( &event ) != 0 )
+        while(SDL_PollEvent(&event) != 0)
         {
-            if( event.type == SDL_QUIT )
+            t.start();
+            clearScreen(renderer);
+            if(event.type == SDL_QUIT)
             {
                 running = false;
             } else if (event.type == SDL_MOUSEWHEEL) {
@@ -89,25 +120,120 @@ int main( int argc, char* args[] ) {
 
                 test.generate_image();
                 SDL_RenderPresent( renderer );
+            } else if (event.type == SDL_KEYDOWN) {
+                if (event.key.keysym.sym == SDLK_f) {
+                    std::cout << "Seen " << stats_counter.get_seen() <<
+                    " images out of " <<  stats_counter.get_total() << std::endl;
+                }
+
             }
+            std::cout << "FPS " << 1000000.0/t.get() << std::endl;
         }
+
+        /* for memory checks
+        test.increment_zoom(1.12);
+        test.generate_image();
+        SDL_RenderPresent( renderer );
+
+
+        if (crash > 200) {
+            running = false;
+        }
+
+        crash++;
+        */
     }
-    close(&window);
+    close(&window, &renderer, &screenSurface);
 
     return 0;
 }
 
 
+void init_vars(int argc, char** args, int& x_window, int& y_window,
+               int& x_image, int& y_image, int& parts_x, int& parts_y,
+               int& detail_width, int& local_transition_width, char** render_type,
+               int& prune_threshold, int& closeness_thresh, float& final_upscale,
+               std::vector<int>& resolutions, char** folder) {
+    x_window = 1600;
+    y_window = 1600;
+    x_image = 1600;
+    y_image = 1600;
+    parts_x = 400;
+    parts_y = 400;
+    prune_threshold = 3;
+    closeness_thresh = 0;
+    final_upscale = 1;
+    detail_width = 1600;
+    local_transition_width = 1600;
+    resolutions = {1300, 800, 400, 200, 100, 50, 25, 10, 5, 2};
+    *render_type = "software";
+
+    for (int i = 1; i < argc; i++) {
+        std::cout << "here" << std::endl;
+        if (!strcmp(args[i], "-winx")) {
+            i++;
+            x_window = atoi(args[i]);
+        } if (!strcmp(args[i], "-winy")) {
+            i++;
+            y_window = atoi(args[i]);
+        } if (!strcmp(args[i], "-imgx")) {
+            i++;
+            x_image = atoi(args[i]);
+        } if (!strcmp(args[i], "-imgy")) {
+            i++;
+            y_image = atoi(args[i]);
+        } if (!strcmp(args[i], "-parts_x")) {
+            std::cout << "inside" << std::endl;
+            i++;
+            parts_x = atoi(args[i]);
+        } if (!strcmp(args[i], "-parts_y")) {
+            i++;
+            parts_y = atoi(args[i]);
+        } if (!strcmp(args[i], "-detail_width")) {
+            i++;
+            detail_width = atoi(args[i]);
+        } if (!strcmp(args[i], "-prune")) {
+            i++;
+            prune_threshold = atoi(args[i]);
+        } if (!strcmp(args[i], "-closeness")) {
+            i++;
+            closeness_thresh = atoi(args[i]);
+        } if (!strcmp(args[i], "-render")) {
+            i++;
+            *render_type = args[i];
+        } if (!strcmp(args[i], "-upscale")) {
+            i++;
+            final_upscale = atof(args[i]);
+        } if (!strcmp(args[i], "-transition_width")) {
+            i++;
+            local_transition_width = atoi(args[i]);
+        } if (!strcmp(args[i], "-resolutions")) {
+            i++;
+            int num_res = atoi(args[i]);
+            resolutions.clear();
+            for (int j = 0; j < num_res; j++) {
+                i++;
+                resolutions.push_back(atoi(args[i]));
+            }
+        } if (!strcmp(args[i], "-folder")) {
+            i++;
+            *folder = args[i];
+        }
+    }
+}
+
+
 /* Handles initializing SDL window. */
-bool init(SDL_Window** window_ptr, SDL_Surface** surface_ptr, SDL_Renderer** renderer_ptr) {
+bool init_sdl(SDL_Window** window_ptr, SDL_Surface** surface_ptr, SDL_Renderer** renderer_ptr,
+            int x_win_res, int y_win_res) {
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
         printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
         return false;
     }
 
     *window_ptr = SDL_CreateWindow( "imageVimage", SDL_WINDOWPOS_UNDEFINED,
-                               SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
-                                SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+                               SDL_WINDOWPOS_UNDEFINED, x_win_res,
+                                y_win_res, SDL_WINDOW_SHOWN );
     if( *window_ptr == NULL ) {
         printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
         return false;
@@ -123,15 +249,19 @@ bool init(SDL_Window** window_ptr, SDL_Surface** surface_ptr, SDL_Renderer** ren
 }
 
 /* Handles closing the window and deallocating the memory. */
-void close(SDL_Window** window) {
-    SDL_DestroyWindow( *window );
+void close(SDL_Window** window, SDL_Renderer** renderer, SDL_Surface** screenSurface) {
+    SDL_DestroyRenderer(*renderer);
+    *renderer = NULL;
+    SDL_FreeSurface(*screenSurface);
+    *screenSurface = NULL;
+    SDL_DestroyWindow(*window);
     *window = NULL;
     SDL_Quit();
 }
 
 /* Clears screen. */
 void clearScreen(SDL_Renderer* renderer) {
-    SDL_SetRenderDrawColor( renderer, 0x66, 0x66, 0x99, 0xFF );
+    SDL_SetRenderDrawColor( renderer, 0xFF, 0x00, 0xFF, 0xFF );
     SDL_RenderClear( renderer );
 }
 
