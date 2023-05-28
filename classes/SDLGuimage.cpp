@@ -88,11 +88,11 @@ void SDLGuimage::set_local_transition_threshold(int thresh_width) {
 }
 
 float SDLGuimage::calculate_small_x() {
-    return composite_image->get_width() / (float)composite_image->get_num_parts_width();
+    return width / (float)composite_image->get_num_parts_width();
 }
 
 float SDLGuimage::calculate_small_y() {
-    return composite_image->get_height() / (float)composite_image->get_num_parts_height();
+    return height / (float)composite_image->get_num_parts_height();
 }
 
 void SDLGuimage::create_detailed() {
@@ -110,15 +110,15 @@ void SDLGuimage::create_detailed() {
     SDL_Texture* tex;
     SDL_Rect texrect = {0, 0, theoretical_x*zoom + 1, theoretical_y*zoom + 1}; // TODO:DELETE GRID ARTIFACTS robust way
 
-    Timer t;
-    int sum = 0;
+    //Timer t;
+    //int sum = 0;
     for (int i = min_y_ind; i < max_y_ind; i++) {
         texrect.y = (i*theoretical_y - cam_min_y) * zoom;
         for (int j = min_x_ind; j < max_x_ind; j++) {
             img = composite_image->get_image_at(i, j);
-            t.start();
+            //t.start();
             tex = texture_loader->get_texture(img, theoretical_x*zoom);
-            sum += t.get();
+            //sum += t.get();
             texrect.x = (j*theoretical_x - cam_min_x) * zoom;
             SDL_RenderCopy(renderer, tex, NULL, &texrect);
 
@@ -128,7 +128,7 @@ void SDLGuimage::create_detailed() {
             }
         }
     }
-    std::cout << "GETTING TEXTURES TOOK " << sum << std::endl;
+    //std::cout << "GETTING TEXTURES TOOK " << sum << std::endl;
 
     if (zoom > local_transition_zoom) {
         add_next_images();
@@ -160,7 +160,7 @@ void SDLGuimage::add_next_images(int min_x_ind, int min_y_ind, int max_x_ind, in
     float theoretical_x = calculate_small_x();
     float theoretical_y = calculate_small_y();
 
-    float new_zoom = (theoretical_x * zoom)/composite_image->get_width();
+    float new_zoom = (theoretical_x * zoom)/width;
     double new_x, new_y;
     CompositeImage* img;
 
@@ -204,10 +204,18 @@ void SDLGuimage::generate_image() {
     if (should_be_detailed) {
         create_detailed();
     } else {
+        int img_w, img_h;
+        float difference;
         SDL_Texture* image = texture_loader->get_texture(composite_image, composite_image->get_width() * zoom);
-        SDL_Rect rect{-cam_min_x * zoom, -cam_min_y * zoom,
-                        composite_image->get_width() * zoom, composite_image->get_height() * zoom};
-        SDL_RenderCopy(renderer, image, NULL, &rect);
+        SDL_QueryTexture(image, NULL, NULL, &img_w, &img_h);
+        difference = (float) img_w / (float) width;
+        float real_w = std::min((float)width, cam_max_x) - std::max(0.0f, cam_min_x);
+        float real_h = std::min((float)height, cam_max_y) - std::max(0.0f, cam_min_y);
+
+        SDL_Rect rect{std::max(-cam_min_x * zoom, 0.0f), std::max(-cam_min_y * zoom, 0.0f), real_w * zoom, real_h * zoom};
+        SDL_Rect srcrect{cam_min_x * difference, cam_min_y * difference,
+         (cam_max_x - cam_min_x) * difference, (cam_max_y - cam_min_y) * difference};
+        SDL_RenderCopy(renderer, image, &srcrect, &rect);
     }
 }
 
