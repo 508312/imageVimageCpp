@@ -212,7 +212,9 @@ void SDLGuimage::generate_image() {
         float real_w = std::min((float)width, cam_max_x) - std::max(0.0f, cam_min_x);
         float real_h = std::min((float)height, cam_max_y) - std::max(0.0f, cam_min_y);
 
-        SDL_Rect rect{std::max(-cam_min_x * zoom, 0.0f), std::max(-cam_min_y * zoom, 0.0f), real_w * zoom, real_h * zoom};
+        SDL_Rect rect{std::max(std::round(-cam_min_x * zoom), 0.0f),
+                        std::max(std::round(-cam_min_y * zoom), 0.0f),
+                        std::round(real_w * zoom), std::round(real_h * zoom)};
         SDL_Rect srcrect{cam_min_x * difference, cam_min_y * difference,
          (cam_max_x - cam_min_x) * difference, (cam_max_y - cam_min_y) * difference};
         SDL_RenderCopy(renderer, image, &srcrect, &rect);

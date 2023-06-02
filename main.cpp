@@ -95,18 +95,18 @@ int main( int argc, char* args[] ) {
 
     float zoom = 1;
     test.change_zoom(zoom);
-    test.generate_image();
-    SDL_RenderPresent( renderer );
 
     int crash = 0;
     std::vector<SDLGuimage*> bottom_level;
+
+    clearScreen(renderer);
+    test.generate_image();
 
     Timer t;
     while(running) {
         while(SDL_PollEvent(&event) != 0)
         {
             t.start();
-            clearScreen(renderer);
             if(event.type == SDL_QUIT)
             {
                 running = false;
@@ -116,10 +116,9 @@ int main( int argc, char* args[] ) {
                 zoom = zoom + event.wheel.preciseY;
                 test.move_cam_pos_based_on_mouse(x, y, event.wheel.preciseY * 0.1 + 1);
                 test.increment_zoom(event.wheel.preciseY * 0.1 + 1);
-                //test.change_zoom(zoom);
 
+                clearScreen(renderer);
                 test.generate_image();
-                SDL_RenderPresent( renderer );
             } else if (event.type == SDL_KEYDOWN) {
                 if (event.key.keysym.sym == SDLK_f) {
                     std::cout << "Seen " << stats_counter.get_seen() <<
@@ -142,8 +141,11 @@ int main( int argc, char* args[] ) {
 
         crash++;
         */
+        SDL_RenderPresent(renderer);
     }
+    std::cout << "here" << std::endl;
     close(&window, &renderer, &screenSurface);
+    std::cout << "here2" << std::endl;
 
     return 0;
 }
@@ -158,14 +160,14 @@ void init_vars(int argc, char** args, int& x_window, int& y_window,
     y_window = 1600;
     x_image = 1600;
     y_image = 1600;
-    parts_x = 400;
-    parts_y = 400;
+    parts_x = 100;
+    parts_y = 100;
     prune_threshold = 3;
     closeness_thresh = 0;
     final_upscale = 1;
-    detail_width = 1600;
+    detail_width = 1900;
     local_transition_width = 1600;
-    resolutions = {1300, 800, 400, 200, 100, 50, 25, 10, 5, 2};
+    resolutions = {1500, 800, 400, 200, 100, 50, 25, 10, 5, 2};
     *render_type = "software";
 
     for (int i = 1; i < argc; i++) {
@@ -251,10 +253,13 @@ bool init_sdl(SDL_Window** window_ptr, SDL_Surface** surface_ptr, SDL_Renderer**
 /* Handles closing the window and deallocating the memory. */
 void close(SDL_Window** window, SDL_Renderer** renderer, SDL_Surface** screenSurface) {
     SDL_DestroyRenderer(*renderer);
+    std::cout << "destroyed renderer" << std::endl;
     *renderer = NULL;
     SDL_FreeSurface(*screenSurface);
+    std::cout << "destroyed surface" << std::endl;
     *screenSurface = NULL;
     SDL_DestroyWindow(*window);
+    std::cout << "destroyed window" << std::endl;
     *window = NULL;
     SDL_Quit();
 }
