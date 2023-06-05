@@ -17,7 +17,7 @@ ImageBuilder::ImageBuilder() {
 }
 
 ImageBuilder::ImageBuilder(int parts_w, int parts_h, int w, int h, int fin_up, int prune,
-                            int closeness, TextureSetter* texl) {
+                            int closeness) {
     num_parts_w = parts_w;
     num_parts_h = parts_h;
     width = w;
@@ -25,7 +25,6 @@ ImageBuilder::ImageBuilder(int parts_w, int parts_h, int w, int h, int fin_up, i
     final_upscale = fin_up;
     prune_threshold = prune;
     closeness_threshold = closeness;
-    tex_loader = texl;
 }
 
 ImageBuilder::~ImageBuilder() {
@@ -58,10 +57,7 @@ void ImageBuilder::build_images() {
                 calculate_small_dim(height, num_parts_h, final_upscale),
                 final_upscale, resized_images, pointers_to_images);
 
-    tex_loader->resize_to(images.size());
-
-    std::for_each(std::execution::par_unseq, indexes.begin(), indexes.end(), [&](int i){
-              create_final(i);});
+    //std::for_each(std::execution::par_unseq, indexes.begin(), indexes.end(), [&](int i){ create_final(i);});
 
     /*
     for (int i = 0; i < get_num_images(); i++) {
@@ -207,16 +203,13 @@ void ImageBuilder::prune(int ind, std::vector<std::vector<pos>> positions,
 
 }
 
-void ImageBuilder::create_final(int ind) {
+void ImageBuilder::create_final(int ind, cv::Mat& concatted_image) {
     std::vector<uint16_t>* grid = images[ind].get_grid();
-    cv::Mat full;
 
     std::cout << "concat started " << std::endl;
-    concat_all(num_parts_h, num_parts_w, final_upscale, resized_images, grid, full);
+    concat_all(num_parts_h, num_parts_w, final_upscale, resized_images, grid, concatted_image);
 
-    //cv::imwrite(("folder2\\" + images[ind].get_name() + "_compiled" + images[ind].get_extension()).c_str(), full);
-
-    tex_loader->set_texture(pointers_to_images[ind], full);
+    //cv::imwrite(("folder2\\" + images[ind].get_name() + "_compiled" + images[ind].get_extension()).c_str(), concatted_image);
 }
 
 void ImageBuilder::fill_table(int num_images, int small_width, int small_height, float final_upscale,
@@ -324,4 +317,8 @@ void ImageBuilder::load_images(std::string path) {
 
 std::vector<CompositeImage>* ImageBuilder::get_images() {
     return &images;
+}
+
+std::vector<CompositeImage*>& ImageBuilder::get_pointers_to_images() {
+    return pointers_to_images;
 }

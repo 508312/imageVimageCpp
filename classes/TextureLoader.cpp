@@ -6,7 +6,7 @@
 #include "opencv2/opencv.hpp"
 
 template <typename TexType>
-TextureLoader<TexType>::TextureLoader() : TextureSetter() {
+TextureLoader<TexType>::TextureLoader(ImageBuilder* img_bldr) : TextureSetter(img_bldr) {
     mipmaps.push_back(std::vector<TexType>{});
 }
 
@@ -20,24 +20,26 @@ void TextureLoader<TexType>::free_textures() {
 }
 
 template <typename TexType>
-TextureLoader<TexType>::TextureLoader(std::initializer_list<int> resoluts) : TextureLoader(resoluts, 0) {
+TextureLoader<TexType>::TextureLoader(ImageBuilder* img_bldr, std::initializer_list<int> resoluts)
+ : TextureLoader(img_bldr, resoluts, 0) {
 }
 
 template <typename TexType>
-TextureLoader<TexType>::TextureLoader(std::initializer_list<int> resoluts,
-                                       int load_threshold) : TextureSetter(resoluts, load_threshold) {
+TextureLoader<TexType>::TextureLoader(ImageBuilder* img_bldr, std::initializer_list<int> resoluts,
+                                int load_threshold) : TextureSetter(img_bldr, resoluts, load_threshold) {
     for (int res : resoluts) {
         mipmaps.push_back(std::vector<TexType>{});
     }
 }
 
 template <typename TexType>
-TextureLoader<TexType>::TextureLoader(std::vector<int>& resoluts) : TextureLoader(resoluts, 0) {
+TextureLoader<TexType>::TextureLoader(ImageBuilder* img_bldr, std::vector<int>& resoluts)
+ : TextureLoader(img_bldr, resoluts, 0) {
 }
 
 template <typename TexType>
-TextureLoader<TexType>::TextureLoader(std::vector<int>& resoluts,
-                                       int load_threshold) : TextureSetter(resoluts, load_threshold) {
+TextureLoader<TexType>::TextureLoader(ImageBuilder* img_bldr, std::vector<int>& resoluts,
+                            int load_threshold) : TextureSetter(img_bldr, resoluts, load_threshold) {
     for (int res : resoluts) {
         mipmaps.push_back(std::vector<TexType>{});
     }

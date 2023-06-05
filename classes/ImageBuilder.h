@@ -5,7 +5,6 @@
 #include<vector>
 #include<string>
 #include <unordered_map>
-#include <TextureLoader.h>
 #include <variant>
 #include "StatsCounter.h"
 
@@ -19,14 +18,14 @@ class ImageBuilder {
 
         ImageBuilder();
 
-        ImageBuilder(int parts_w, int parts_h, int w, int h, int fin_up, int prune, int closeness, TextureSetter* texl);
+        ImageBuilder(int parts_w, int parts_h, int w, int h, int fin_up, int prune, int closeness);
         virtual ~ImageBuilder();
 
         void load_images(std::string path);
 
         void build_images();
 
-        void create_final(int ind);
+        void create_final(int ind, cv::Mat& concatted_image);
 
         int get_num_images();
 
@@ -37,6 +36,7 @@ class ImageBuilder {
                                 std::vector<uint16_t>* grid, cv::Mat& full);
 
         std::vector<CompositeImage>* get_images();
+        std::vector<CompositeImage*>& get_pointers_to_images();
 
         void prune(int ind, std::vector<std::vector<pos>> positions,
                         std::vector<int>& amounts,
@@ -90,10 +90,6 @@ class ImageBuilder {
             For 4 the artifacts are visible and not worth the speedup.
          */
         int closeness_threshold = 0;
-
-        /// Texture loader to which load textures after compiling.
-        TextureSetter* tex_loader;
-
 };
 
 #endif // IMAGEBUILDER_H
