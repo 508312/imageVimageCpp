@@ -61,28 +61,16 @@ void SDLTextureLoader::load_set(std::vector<CompositeImage*>& images) {
     std::vector<int> indexes;
 
     for (int i = 0; i < images.size(); i++) {
-        cv::Mat full;
-        image_builder->create_final(images[i]->get_ind(), full);
-        set_below_threshold(images[i], full);
-
-
         indexes.push_back(i);
     }
 
-
+    std::for_each(std::execution::par_unseq, indexes.begin(), indexes.end(), [&](int i){
+                                cv::Mat full;
+                                image_builder->create_final(images[i]->get_ind(), full);
+                                set_below_threshold(images[i], full); });
 }
 
-void SDLTextureLoader::free_textures() {
-    int amnt = 0;
-
-    SDL_Texture* texture_to_delete;
-    for (int i = 0; i < resolutions.size(); i++) {
-        for(int j = 0; j < mipmaps[i].size(); j++) {
-            texture_to_delete = mipmaps[i][j];
-            SDL_DestroyTexture(texture_to_delete);
-            mipmaps[i][j] = NULL;
-            amnt++;
-        }
-    }
-    std::cout << "DELETED " << amnt << std::endl;
+void SDLTextureLoader::free_texture(int res_index, int img_index) {
+        SDL_DestroyTexture(mipmaps[res_index][img_index]);
+        mipmaps[res_index][img_index] = NULL;
 }

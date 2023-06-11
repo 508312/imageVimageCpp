@@ -1,4 +1,5 @@
 #include "TextureSetter.h"
+#include <iostream>
 
 TextureSetter::TextureSetter(ImageBuilder* img_bldr) {
     resolutions.push_back(1600);
@@ -44,5 +45,22 @@ void TextureSetter::set_below_threshold(CompositeImage* image, cv::Mat& pixels) 
 }
 
 void TextureSetter::set_above_threshold(CompositeImage* image, cv::Mat& pixels) {
+    set_texture(image, pixels, 0, load_threshold);
+    texture_status[image->get_ind()] = TEXTURE_LOADED;
+}
+
+void TextureSetter::set_below_threshold(CompositeImage* image) {
+    cv::Mat pixels;
+    image_builder->create_final(image->get_ind(), pixels);
+    set_texture(image, pixels, load_threshold, resolutions.size());
+}
+
+void TextureSetter::set_above_threshold(CompositeImage* image) {
+    std::cout << "SETTING ABOVE " << image->get_ind() << std::endl;
+    if (load_threshold <= 0) {
+        return;
+    }
+    cv::Mat pixels;
+    image_builder->create_final(image->get_ind(), pixels);
     set_texture(image, pixels, 0, load_threshold);
 }

@@ -5,6 +5,7 @@
 #include <opencv2/core/mat.hpp>
 #include "opencv2/imgproc/imgproc.hpp"
 #include "ImageBuilder.h"
+#include "TextureStatus.h"
 
 class TextureSetter
 {
@@ -20,11 +21,14 @@ class TextureSetter
         virtual void set_texture(CompositeImage* image, cv::Mat& pixels, uint8_t start_ind, uint8_t end_ind) = 0;
         virtual void set_below_threshold(CompositeImage* image, cv::Mat& pixels);
         virtual void set_above_threshold(CompositeImage* image, cv::Mat& pixels);
+        virtual void set_below_threshold(CompositeImage* image);
+        virtual void set_above_threshold(CompositeImage* image);
 
         virtual void resize_to(int amnt) = 0;
 
     protected:
         std::vector<int> resolutions;
+        std::vector<TextureStatus> texture_status;
         int load_threshold;
         ImageBuilder* image_builder;
 

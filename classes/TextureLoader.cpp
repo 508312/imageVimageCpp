@@ -4,6 +4,9 @@
 #include <opencv2/core/mat.hpp>
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/opencv.hpp"
+#include <thread>
+#include <future>
+
 
 template <typename TexType>
 TextureLoader<TexType>::TextureLoader(ImageBuilder* img_bldr) : TextureSetter(img_bldr) {
@@ -16,7 +19,15 @@ TextureLoader<TexType>::~TextureLoader() {
 
 template <typename TexType>
 void TextureLoader<TexType>::free_textures() {
-    return;
+    int amnt = 0;
+
+    for (int i = 0; i < resolutions.size(); i++) {
+        for(int j = 0; j < mipmaps[i].size(); j++) {
+            free_texture(i, j);
+            amnt++;
+        }
+    }
+    std::cout << "DELETED " << amnt << std::endl;
 }
 
 template <typename TexType>
@@ -47,6 +58,10 @@ TextureLoader<TexType>::TextureLoader(ImageBuilder* img_bldr, std::vector<int>& 
 
 template <typename TexType>
 void TextureLoader<TexType>::resize_to(int amnt) {
+    for (int i = texture_status.size(); i < amnt; i++) {
+        texture_status.push_back(TEXTURE_NOT_LOADED);
+        std::cout << (int)texture_status[i] << std::endl;
+    }
     for (int i = 0; i < mipmaps.size(); i++) {
         mipmaps[i].resize(amnt);
     }
@@ -77,6 +92,12 @@ int TextureLoader<TexType>::find_closest_res(int width) {
 template <typename TexType>
 TexType& TextureLoader<TexType>::get_texture(CompositeImage* image, int width) {
     int index = find_closest_res(width);
+    if (index == load_threshold && texture_status[image->get_ind()] == TEXTURE_NOT_LOADED) {
+        texture_status[image->get_ind()] = TEXTURE_STARTED_LOADING;
+        std::thread t1([this,image](){set_above_threshold(image);});
+        t1.detach();
+    }
+
     while (mipmaps[index][image->get_ind()] == NULL) {
         index++;
     }

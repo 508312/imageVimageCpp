@@ -28,6 +28,8 @@ class TextureLoader : public TextureSetter
 
         virtual void free_textures();
 
+        virtual void free_texture(int res_index, int img_index) = 0;
+
     protected:
         int find_closest_res(int width);
 

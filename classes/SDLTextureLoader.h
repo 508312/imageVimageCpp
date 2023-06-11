@@ -24,7 +24,7 @@ class SDLTextureLoader : public TextureLoader<SDL_Texture*>
 
         void load_set(std::vector<CompositeImage*>& images);
 
-        virtual void free_textures();
+        virtual void free_texture(int res_index, int img_index);
 
     protected:
 
