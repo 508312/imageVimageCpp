@@ -58,9 +58,9 @@ TextureLoader<TexType>::TextureLoader(ImageBuilder* img_bldr, std::vector<int>& 
 
 template <typename TexType>
 void TextureLoader<TexType>::resize_to(int amnt) {
-    for (int i = texture_status.size(); i < amnt; i++) {
-        texture_status.push_back(TEXTURE_NOT_LOADED);
-        std::cout << (int)texture_status[i] << std::endl;
+    for (int i = texture_statuses.size(); i < amnt; i++) {
+        texture_statuses.push_back(TEXTURE_NOT_LOADED);
+        std::cout << (int)texture_statuses[i] << std::endl;
     }
     for (int i = 0; i < mipmaps.size(); i++) {
         mipmaps[i].resize(amnt);
@@ -92,16 +92,27 @@ int TextureLoader<TexType>::find_closest_res(int width) {
 template <typename TexType>
 TexType& TextureLoader<TexType>::get_texture(CompositeImage* image, int width) {
     int index = find_closest_res(width);
-    if (index == load_threshold && texture_status[image->get_ind()] == TEXTURE_NOT_LOADED) {
-        texture_status[image->get_ind()] = TEXTURE_STARTED_LOADING;
-        std::thread t1([this,image](){set_above_threshold(image);});
-        t1.detach();
+    int del;
+    if (index <= load_threshold) {
+        del = texture_cache.put(image->get_ind());
+
+        if (del != -1 && texture_statuses[image->get_ind()] == TEXTURE_LOADED) {
+            texture_statuses[image->get_ind()] = TEXTURE_STARTED_UNLOADING;
+            std::thread dt([this,del](){free_texture_above_thresh(del);});
+            dt.detach();
+        }
     }
 
-    while (mipmaps[index][image->get_ind()] == NULL) {
-        index++;
+    if (index <= load_threshold && texture_statuses[image->get_ind()] == TEXTURE_NOT_LOADED) {
+        texture_statuses[image->get_ind()] = TEXTURE_STARTED_LOADING;
+        std::thread ct([this,image](){set_above_threshold(image);});
+        ct.detach();
     }
-    return mipmaps[index][image->get_ind()];
+
+    if (texture_statuses[image->get_ind()] == TEXTURE_LOADED || index > load_threshold) {
+        return mipmaps[index][image->get_ind()];
+    }
+    return mipmaps[load_threshold][image->get_ind()];
 }
 
 template <typename TexType>
@@ -111,4 +122,13 @@ TexType& TextureLoader<TexType>::get_full_texture(CompositeImage* image) {
         index++;
     }
     return mipmaps[0][image->get_ind()];
+}
+
+template <typename TexType>
+void TextureLoader<TexType>::free_texture_above_thresh(int img_index) {
+    for (int i = 0; i < load_threshold; i++) {
+        free_texture(i, img_index);
+    }
+    std::cout << "FREED " << img_index << std::endl;
+    texture_statuses[img_index] == TEXTURE_NOT_LOADED;
 }

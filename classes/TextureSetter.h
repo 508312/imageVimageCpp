@@ -28,7 +28,7 @@ class TextureSetter
 
     protected:
         std::vector<int> resolutions;
-        std::vector<TextureStatus> texture_status;
+        std::vector<TextureStatus> texture_statuses;
         int load_threshold;
         ImageBuilder* image_builder;
 

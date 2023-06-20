@@ -8,6 +8,7 @@
 #include "CompositeImage.h"
 #include "ImageBuilder.h"
 #include "TextureSetter.h"
+#include "LFUcache.h"
 
 template <class TexType>
 class TextureLoader : public TextureSetter
@@ -28,13 +29,16 @@ class TextureLoader : public TextureSetter
 
         virtual void free_textures();
 
-        virtual void free_texture(int res_index, int img_index) = 0;
-
     protected:
         int find_closest_res(int width);
 
+        virtual void free_texture(int res_index, int img_index) = 0;
+        virtual void free_texture_above_thresh(int img_index);
+
         // first array is of resolution, second array is of image itself
         std::vector<std::vector<TexType>> mipmaps;
+
+        LFUcache texture_cache{100};
 
     private:
 };

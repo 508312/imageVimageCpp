@@ -215,8 +215,8 @@ void SDLGuimage::generate_image() {
         SDL_Rect rect{std::max(std::round(-cam_min_x * zoom), 0.0f),
                         std::max(std::round(-cam_min_y * zoom), 0.0f),
                         std::round(real_w * zoom), std::round(real_h * zoom)};
-        SDL_Rect srcrect{cam_min_x * difference, cam_min_y * difference,
-         (cam_max_x - cam_min_x) * difference, (cam_max_y - cam_min_y) * difference};
+        SDL_Rect srcrect{std::round(cam_min_x * difference), std::round(cam_min_y * difference),
+         std::round((cam_max_x - cam_min_x) * difference), std::round((cam_max_y - cam_min_y) * difference)};
         SDL_RenderCopy(renderer, image, &srcrect, &rect);
     }
 }
