@@ -93,6 +93,7 @@ template <typename TexType>
 TexType& TextureLoader<TexType>::get_texture(CompositeImage* image, int width) {
     int index = find_closest_res(width);
     int del;
+
     if (index <= load_threshold) {
         del = texture_cache.put(image->get_ind());
 

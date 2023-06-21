@@ -36,11 +36,10 @@ void init_vars(int argc, char** args, int& x_window, int& y_window,
                int& detail_width, int& local_transition_width, char** render_type,
                int& prune_threshold, int& closeness_thresh, float& final_upscale,
                std::vector<int>& resolutions, char** folder);
-void close(SDL_Window** window, SDL_Renderer** renderer, SDL_Surface** screenSurface);
+void closeSDL(SDL_Window** window, SDL_Renderer** renderer, SDL_Surface** screenSurface);
 void clearScreen(SDL_Renderer* renderer);
 
 int main( int argc, char* args[] ) {
-    ImageSyncer imgsync;
     SetProcessDPIAware();
 
     int x_win_res, y_win_res, x_img_res, y_img_res, x_img_parts, y_img_parts,
@@ -71,14 +70,16 @@ int main( int argc, char* args[] ) {
         return 0;
     }
 
-    SDLTextureLoader test_loader(resolutions, renderer, 0);
-
     ImageBuilder builder(x_img_parts, y_img_parts, x_img_res, y_img_res, final_upscale,
-                          prune_threshold, closeness_threshold, &test_loader);
+                          prune_threshold, closeness_threshold);
     builder.load_images(folder);
 
     t1.start();
     builder.build_images();
+    SDLTextureLoader test_loader(&builder, resolutions, renderer, 2);
+    std::vector<CompositeImage*> ptrs_to_imgs = builder.get_pointers_to_images();
+    test_loader.load_set(ptrs_to_imgs);
+
     std::cout << "whole process " << t1.get() << std::endl;
 
     std::vector<CompositeImage>* images = builder.get_images();
@@ -119,6 +120,7 @@ int main( int argc, char* args[] ) {
 
                 clearScreen(renderer);
                 test.generate_image();
+                std::cout << "FPS " << 1000000.0/t.get() << std::endl;
             } else if (event.type == SDL_KEYDOWN) {
                 if (event.key.keysym.sym == SDLK_f) {
                     std::cout << "Seen " << stats_counter.get_seen() <<
@@ -126,7 +128,6 @@ int main( int argc, char* args[] ) {
                 }
 
             }
-            std::cout << "FPS " << 1000000.0/t.get() << std::endl;
         }
 
         /* for memory checks
@@ -142,9 +143,12 @@ int main( int argc, char* args[] ) {
         crash++;
         */
         SDL_RenderPresent(renderer);
+        SDL_Delay(0);
     }
+
+    //test_loader.free_textures();
     std::cout << "here" << std::endl;
-    close(&window, &renderer, &screenSurface);
+    closeSDL(&window, &renderer, &screenSurface);
     std::cout << "here2" << std::endl;
 
     return 0;
@@ -160,8 +164,8 @@ void init_vars(int argc, char** args, int& x_window, int& y_window,
     y_window = 1600;
     x_image = 1600;
     y_image = 1600;
-    parts_x = 100;
-    parts_y = 100;
+    parts_x = 400;
+    parts_y = 400;
     prune_threshold = 3;
     closeness_thresh = 0;
     final_upscale = 1;
@@ -228,30 +232,29 @@ void init_vars(int argc, char** args, int& x_window, int& y_window,
 /* Handles initializing SDL window. */
 bool init_sdl(SDL_Window** window_ptr, SDL_Surface** surface_ptr, SDL_Renderer** renderer_ptr,
             int x_win_res, int y_win_res) {
-    if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
-        printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
+    if(SDL_Init(SDL_INIT_VIDEO) < 0) {
+        std::cout << "Initialization failure " << SDL_GetError() << std::endl;
         return false;
     }
 
-    *window_ptr = SDL_CreateWindow( "imageVimage", SDL_WINDOWPOS_UNDEFINED,
+    *window_ptr = SDL_CreateWindow("imageVimage", SDL_WINDOWPOS_UNDEFINED,
                                SDL_WINDOWPOS_UNDEFINED, x_win_res,
-                                y_win_res, SDL_WINDOW_SHOWN );
-    if( *window_ptr == NULL ) {
-        printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+                                y_win_res, SDL_WINDOW_SHOWN);
+    if(*window_ptr == NULL) {
+        std::cout << "Window creation failure " << SDL_GetError() << std::endl;
         return false;
     }
 
-    *renderer_ptr = SDL_CreateRenderer( *window_ptr, -1, SDL_RENDERER_ACCELERATED );
+    *renderer_ptr = SDL_CreateRenderer(*window_ptr, -1, SDL_RENDERER_ACCELERATED);
 
-    SDL_SetRenderDrawColor( *renderer_ptr, 0xFF, 0xFF, 0xFF, 0xFF );
-
-    *surface_ptr = SDL_GetWindowSurface( *window_ptr );
+    *surface_ptr = SDL_GetWindowSurface(*window_ptr);
 
     return true;
 }
 
 /* Handles closing the window and deallocating the memory. */
-void close(SDL_Window** window, SDL_Renderer** renderer, SDL_Surface** screenSurface) {
+void closeSDL(SDL_Window** window, SDL_Renderer** renderer, SDL_Surface** screenSurface) {
+    // TODO: find out what causes crash of a program on line below
     SDL_DestroyRenderer(*renderer);
     std::cout << "destroyed renderer" << std::endl;
     *renderer = NULL;
@@ -266,7 +269,10 @@ void close(SDL_Window** window, SDL_Renderer** renderer, SDL_Surface** screenSur
 
 /* Clears screen. */
 void clearScreen(SDL_Renderer* renderer) {
-    SDL_SetRenderDrawColor( renderer, 0xFF, 0x00, 0xFF, 0xFF );
-    SDL_RenderClear( renderer );
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0xFF, 0xFF);
+    SDL_RenderClear(renderer);
 }
 
+
+//800x800 12FPS
+//800x800 8.9FPS
