@@ -111,10 +111,10 @@ void SDLGuimage::create_detailed() {
     SDL_Rect texrect = {0, 0, std::round(theoretical_x*zoom) + 1, std::round(theoretical_y*zoom) + 1}; // TODO:DELETE GRID ARTIFACTS robust way
     SDL_Rect srcrect = {NULL, NULL, NULL, NULL};
 
-    double x_percent_start = 0;
-    double x_percent_end = 0;
-    double y_percent_start = 0;
-    double y_percent_end = 0;
+    float x_start = 0;
+    float x_end = 0;
+    float y_start = 0;
+    float y_end = 0;
 
     int tex_w;
     int tex_h;
@@ -126,16 +126,16 @@ void SDLGuimage::create_detailed() {
         texrect.h = (std::min((i+1)*theoretical_y, cam_max_y) - std::max(cam_min_y, i * theoretical_y)) * zoom;
         texrect.h += ((int)(texrect.y + texrect.h) != (int) std::max(0.0f, std::round(((i+1)*theoretical_y - cam_min_y) * zoom)));
 
-        y_percent_start = std::max((cam_min_y - i*theoretical_y)/theoretical_y, 0.0f);
-        y_percent_end = std::min((cam_max_y - i*theoretical_y)/theoretical_y, 1.0f);
+        y_start = std::max((cam_min_y - i*theoretical_y) * zoom, 0.0f);
+        y_end = std::min((cam_max_y - i*theoretical_y)*zoom, theoretical_y*zoom);
 
         for (int j = min_x_ind; j < max_x_ind; j++) {
             texrect.x = std::max(0.0f, std::round((j*theoretical_x - cam_min_x) * zoom));
             texrect.w = (std::min((j+1)*theoretical_x, cam_max_x) - std::max(cam_min_x, j * theoretical_x)) * zoom;
             texrect.w += ((int)(texrect.x + texrect.w) != (int) std::max(0.0f, std::round(((j+1)*theoretical_x - cam_min_x) * zoom)));
 
-            x_percent_start = std::max((cam_min_x - j*theoretical_x)/theoretical_x, 0.0f);
-            x_percent_end = std::min((cam_max_x - j*theoretical_x)/theoretical_x, 1.0f);
+            x_start = std::max((cam_min_x - j*theoretical_x) * zoom, 0.0f);
+            x_end = std::min((cam_max_x - j*theoretical_x)*zoom, theoretical_x*zoom);
 
             img = composite_image->get_image_at(i, j);
             //t.start();
@@ -146,10 +146,10 @@ void SDLGuimage::create_detailed() {
 
             float difference = tex_w/(theoretical_x*zoom);
 
-            srcrect.x = std::round(theoretical_x*zoom * x_percent_start * difference);
-            srcrect.y = std::round(theoretical_y*zoom * y_percent_start * difference);
-            srcrect.w = std::round(theoretical_x*zoom * (x_percent_end - x_percent_start)) * difference;
-            srcrect.h = std::round(theoretical_y*zoom * (y_percent_end - y_percent_start)) * difference;
+            srcrect.x = std::round(x_start * difference);
+            srcrect.y = std::round(y_start * difference);
+            srcrect.w = std::round((x_end - x_start) * difference);
+            srcrect.h = std::round((y_end - y_start) * difference);
 
             //std::cout << " texres " << tex_w << " " << tex_h << std::endl;
             //std::cout << i << " " << j << " texrectx " << texrect.x << " " << texrect.y << " " << texrect.w << " " << texrect.h <<  std::endl;
