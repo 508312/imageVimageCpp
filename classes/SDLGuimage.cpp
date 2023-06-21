@@ -123,14 +123,16 @@ void SDLGuimage::create_detailed() {
     //int sum = 0;
     for (int i = min_y_ind; i < max_y_ind; i++) {
         texrect.y = std::max(0.0f, std::round((i*theoretical_y - cam_min_y) * zoom));
-        texrect.h = (std::min((i+1)*theoretical_y, cam_max_y) - std::max(cam_min_y, i * theoretical_y)) * zoom + 1;
+        texrect.h = (std::min((i+1)*theoretical_y, cam_max_y) - std::max(cam_min_y, i * theoretical_y)) * zoom;
+        texrect.h += ((int)(texrect.y + texrect.h) != (int) std::max(0.0f, std::round(((i+1)*theoretical_y - cam_min_y) * zoom)));
 
         y_percent_start = std::max((cam_min_y - i*theoretical_y)/theoretical_y, 0.0f);
         y_percent_end = std::min((cam_max_y - i*theoretical_y)/theoretical_y, 1.0f);
 
         for (int j = min_x_ind; j < max_x_ind; j++) {
             texrect.x = std::max(0.0f, std::round((j*theoretical_x - cam_min_x) * zoom));
-            texrect.w = (std::min((j+1)*theoretical_x, cam_max_x) - std::max(cam_min_x, j * theoretical_x)) * zoom + 1;
+            texrect.w = (std::min((j+1)*theoretical_x, cam_max_x) - std::max(cam_min_x, j * theoretical_x)) * zoom;
+            texrect.w += ((int)(texrect.x + texrect.w) != (int) std::max(0.0f, std::round(((j+1)*theoretical_x - cam_min_x) * zoom)));
 
             x_percent_start = std::max((cam_min_x - j*theoretical_x)/theoretical_x, 0.0f);
             x_percent_end = std::min((cam_max_x - j*theoretical_x)/theoretical_x, 1.0f);
