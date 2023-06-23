@@ -45,7 +45,6 @@ void TextureSetter::set_below_threshold(CompositeImage* image, cv::Mat& pixels) 
 }
 
 void TextureSetter::set_above_threshold(CompositeImage* image, cv::Mat& pixels) {
-    std::cout << "SETTING ABOVE " << image->get_ind() << std::endl;
     if (load_threshold <= 0) {
         return;
     }

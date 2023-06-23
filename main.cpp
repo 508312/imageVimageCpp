@@ -171,7 +171,7 @@ void init_vars(int argc, char** args, int& x_window, int& y_window,
     final_upscale = 1;
     detail_width = 1900;
     local_transition_width = 1600;
-    resolutions = {1500, 800, 400, 200, 100, 50, 25, 10, 5, 2};
+    resolutions = {1500, 800, 400, 200, 100, 50, 25, 10, 5};
     *render_type = "software";
 
     for (int i = 1; i < argc; i++) {

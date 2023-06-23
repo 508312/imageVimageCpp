@@ -44,6 +44,9 @@ class LFUcache
 
         // Index to node mapping
         std::unordered_map<int, node*> mapping;
+
+        //prints useful information
+        void debug_print_info();
 };
 
 #endif // LFUCACHE_H

@@ -38,7 +38,7 @@ class TextureLoader : public TextureSetter
         // first array is of resolution, second array is of image itself
         std::vector<std::vector<TexType>> mipmaps;
 
-        LFUcache texture_cache{50};
+        LFUcache texture_cache{20};
 
     private:
 };
