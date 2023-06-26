@@ -1,6 +1,7 @@
 #ifndef TEXTURESTATUS_H
 #define TEXTURESTATUS_H
 
+// Various texture statuses for imageLoader
 enum TextureStatus : uint8_t {
     TEXTURE_NOT_LOADED = 1,
     TEXTURE_STARTED_LOADING = 2,

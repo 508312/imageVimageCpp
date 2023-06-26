@@ -20,8 +20,6 @@ SDLGuimage::SDLGuimage( int w, int h, int row, int col, int detail_thresh,
     self_col = 0;
     zoom = 0;
 
-    window_name = "Display window";
-
     detail_threshold = detail_thresh;
 
     texture_loader = texloader;
@@ -88,11 +86,11 @@ void SDLGuimage::set_local_transition_threshold(int thresh_width) {
 }
 
 float SDLGuimage::calculate_small_x() {
-    return width / (float)composite_image->get_num_parts_width();
+    return composite_image->get_width() / (float)composite_image->get_num_parts_width();
 }
 
 float SDLGuimage::calculate_small_y() {
-    return height / (float)composite_image->get_num_parts_height();
+    return composite_image->get_height() / (float)composite_image->get_num_parts_height();
 }
 
 void SDLGuimage::create_detailed() {
@@ -144,12 +142,13 @@ void SDLGuimage::create_detailed() {
 
             SDL_QueryTexture(tex, NULL, NULL, &tex_w, &tex_h);
 
-            float difference = tex_w/(theoretical_x*zoom);
+            float difference_x = tex_w/(theoretical_x*zoom);
+            float difference_y = tex_h/(theoretical_y*zoom);
 
-            srcrect.x = std::round(x_start * difference);
-            srcrect.y = std::round(y_start * difference);
-            srcrect.w = std::round((x_end - x_start) * difference);
-            srcrect.h = std::round((y_end - y_start) * difference);
+            srcrect.x = std::round(x_start * difference_x);
+            srcrect.y = std::round(y_start * difference_y);
+            srcrect.w = std::round((x_end - x_start) * difference_x);
+            srcrect.h = std::round((y_end - y_start) * difference_y);
 
             //std::cout << " texres " << tex_w << " " << tex_h << std::endl;
             //std::cout << i << " " << j << " texrectx " << texrect.x << " " << texrect.y << " " << texrect.w << " " << texrect.h <<  std::endl;
@@ -195,7 +194,7 @@ void SDLGuimage::add_next_images(int min_x_ind, int min_y_ind, int max_x_ind, in
     float theoretical_x = calculate_small_x();
     float theoretical_y = calculate_small_y();
 
-    float new_zoom = (theoretical_x * zoom)/width;
+    float new_zoom = (theoretical_x * zoom)/composite_image->get_width();
     double new_x, new_y;
     CompositeImage* img;
 
@@ -240,18 +239,20 @@ void SDLGuimage::generate_image() {
         create_detailed();
     } else {
         int img_w, img_h;
-        float difference;
+        float difference_x;
+        float difference_y;
         SDL_Texture* image = texture_loader->get_texture(composite_image, composite_image->get_width() * zoom);
         SDL_QueryTexture(image, NULL, NULL, &img_w, &img_h);
-        difference = (float) img_w / (float) width;
-        float real_w = std::min((float)width, cam_max_x) - std::max(0.0f, cam_min_x);
-        float real_h = std::min((float)height, cam_max_y) - std::max(0.0f, cam_min_y);
+        difference_x = (float) img_w / (float) composite_image->get_width();
+        difference_y = (float) img_h / (float) composite_image->get_height();
+        float real_w = std::min((float)composite_image->get_width(), cam_max_x) - std::max(0.0f, cam_min_x);
+        float real_h = std::min((float)composite_image->get_height(), cam_max_y) - std::max(0.0f, cam_min_y);
 
         SDL_Rect rect{std::max(std::round(-cam_min_x * zoom), 0.0f),
                         std::max(std::round(-cam_min_y * zoom), 0.0f),
                         std::round(real_w * zoom), std::round(real_h * zoom)};
-        SDL_Rect srcrect{std::round(cam_min_x * difference), std::round(cam_min_y * difference),
-         std::round((cam_max_x - cam_min_x) * difference), std::round((cam_max_y - cam_min_y) * difference)};
+        SDL_Rect srcrect{std::round(cam_min_x * difference_x), std::round(cam_min_y * difference_y),
+         std::round((cam_max_x - cam_min_x) * difference_x), std::round((cam_max_y - cam_min_y)  * difference_y)};
         SDL_RenderCopy(renderer, image, &srcrect, &rect);
     }
 }
@@ -336,7 +337,7 @@ void SDLGuimage::increment_zoom(float zd) {
         }
         return;
     }
-    if (zoom * zd < 1) {
+    if (zoom * zd < (local_transition_zoom*calculate_small_x())/composite_image->get_width()) {
         if (switch_to_parent()) {
             parent->adjust_back_transition(zoom * zd, self_row, self_col, cam_x, cam_y);
         }

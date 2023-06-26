@@ -99,41 +99,55 @@ class SDLGuimage
     protected:
 
     private:
+        /** Current zoom of an image.**/
         float zoom = 1;
 
+        /** List of children Guimages.**/
         std::vector<SDLGuimage> next_images;
+        /** Flag if this image has children.**/
         bool next_image_exists=false;
 
+        /** Bool indicating if an image should be drawn from it's parts.**/
         bool should_be_detailed;
 
+        /** Pointer to a parent Guimage. **/
         SDLGuimage* parent;
 
-        int self_row;
-        int self_col;
+        /** Position on the grid of the parent composite image.**/
+        int self_row, self_col;
 
+        /** Threshold of a zoom for when to change to rendering children guimages instead of parent one. **/
         float local_transition_zoom;
 
-        // cam's pos
+        /** Cam's center's position. **/
         double cam_x, cam_y;
+
+        /** Cam's borders positions. **/
         float cam_max_x, cam_max_y, cam_min_x, cam_min_y;
 
+        /** Windows width and height. Persistent across all childen. **/
         int width, height;
 
+        /** Threshold for when to start rendering image from its parts.
+            Doesn't have to be persistent, but I don't see cases when it's not. **/
         int detail_threshold;
 
         int num_rows_in_next;
         int num_cols_in_next;
 
-        std::string window_name;
-
+        /** Is the image off screen? **/
         bool off_screen = false;
 
+        /** Composite image belonging to the current Guimage. **/
         CompositeImage* composite_image;
 
+        /** Dynamically loads and uloads images of correct resolution. Persistent across all children.**/
         SDLTextureLoader* texture_loader;
 
+        /** SDL renderer to draw images on window. Persistent across all children. **/
         SDL_Renderer* renderer;
 
+        /** Counts stats for how many images have been seen. Persistent across all children. **/
         StatsCounter* stats_counter;
 };
 

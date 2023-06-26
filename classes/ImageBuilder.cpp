@@ -59,6 +59,7 @@ void ImageBuilder::build_images() {
 
     //std::for_each(std::execution::par_unseq, indexes.begin(), indexes.end(), [&](int i){ create_final(i);});
 
+
     /*
     for (int i = 0; i < get_num_images(); i++) {
         t.start();
@@ -209,7 +210,7 @@ void ImageBuilder::create_final(int ind, cv::Mat& concatted_image) {
     std::cout << "concat started " << std::endl;
     concat_all(num_parts_h, num_parts_w, final_upscale, resized_images, grid, concatted_image);
 
-    //cv::imwrite(("folder2\\" + images[ind].get_name() + "_compiled" + images[ind].get_extension()).c_str(), concatted_image);
+    // cv::imwrite(("folder2\\" + images[ind].get_name() + "_compiled" + images[ind].get_extension()).c_str(), concatted_image);
 }
 
 void ImageBuilder::fill_table(int num_images, int small_width, int small_height, float final_upscale,
