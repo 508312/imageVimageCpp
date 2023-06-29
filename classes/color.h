@@ -1,12 +1,12 @@
 #ifndef COLOR_H
 #define COLOR_H
 
-
+/** Color struct. 888 **/
 struct color
 {
-    unsigned char r;
-    unsigned char g;
-    unsigned char b;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
 };
 
 #endif // COLOR_H

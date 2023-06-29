@@ -15,6 +15,9 @@
 #include <queue>
 #include "StatsCounter.h"
 
+/** Graphical image class. Works by having an imaginary camera on root Composite image of constant size.
+    When zooming camera borders shrink and we determine what is seen by the user.
+**/
 class SDLGuimage
 {
         public:
@@ -40,35 +43,40 @@ class SDLGuimage
 
         virtual ~SDLGuimage();
 
+        /** Returns center of camera on the x axis. **/
         float get_cam_x();
+        /** Returns center of camera on the y axis. **/
         float get_cam_y();
+        /** Returns width of the window. **/
         float get_width();
+        /** Returns height of the window. **/
         float get_height();
+        /** Returns the row of this image as in its row in parent's grid. **/
         int get_row();
+        /** Returns the col of this image as in its col in parent's grid. **/
         int get_col();
-
-        void show();
-
+        /** Changes zoom to the @z value. **/
         void change_zoom(float z);
-
+        /** Changes cam pos to @x and @y. **/
         void change_cam_pos(double x, double y);
 
-        /** Updates camera bounds. Camera is placed on width x height image. **/
-        void update_cam_bounds();
-
+        /** Generates and renders image. **/
         void generate_image();
 
+        /** Renders subdivided root image. **/
         void create_detailed();
 
+        /** Increments zoom by zd. **/
         void increment_zoom(float zd);
 
         void set_local_transition_threshold(int thresh);
 
-        bool should_be_drawn();
-
+        /** Pans camera towards cursor **/
         void move_cam_pos_based_on_mouse(int cur_x, int cur_y, float delta_z);
 
+        /** Calculates width of subdivided image. **/
         float calculate_small_x();
+        /** Calculates height of subdivided image. **/
         float calculate_small_y();
 
         /** Switches to parent. Returns 1 on success or 0 if there is no parent to switch to. **/
@@ -80,23 +88,36 @@ class SDLGuimage
         /** Clears next images and images of children. **/
         void clear_next_images();
 
-        void adjust_back_transition(float zd, int row, int col, float cam_x, float cam_y);
-
         int get_max_row();
         int get_max_col();
 
+        /** Returns images being rendered. Leafs of the tree. Children at the bottom level. **/
         void get_bottom_level(std::vector<SDLGuimage*>& res_vec);
 
-        void add_missing(int diff_row, int diff_col);
-
+        /** Adds next images captured by cam bounds. **/
         void add_next_images();
+        /** Adds child images from min indexes to max indexes. **/
         void add_next_images(int min_x_ind, int min_y_ind, int max_x_ind, int max_y_ind);
 
+        /** Calculates which indexes are captured by camera (non inclusive). **/
         void calculate_bound_indexes(int& min_x_ind, int& min_y_ind, int& max_x_ind, int& max_y_ind);
 
+        /** Returns child images. **/
         SDLGuimage* get_next(int row, int col);
 
+        /** Adds missing images caused by unzooming **/
+        // TODO: WIP FUNCTION
+        void add_missing(int diff_row, int diff_col);
+
     protected:
+        /** Updates camera bounds. Camera is placed on width x height image. **/
+        void update_cam_bounds();
+
+        /** Aligns a little bit when zooming back. **/
+        void adjust_back_transition(float zd, int row, int col, float cam_x, float cam_y);
+
+        /** Returns if the image is on screen and should be drawn. **/
+        bool should_be_drawn();
 
     private:
         /** Current zoom of an image.**/

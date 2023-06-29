@@ -37,10 +37,6 @@ void CompositeImage::fill_grid_with_empty() {
     images_grid.resize(num_parts_h*num_parts_w);
 }
 
-void CompositeImage::set_image_at(int x, int y, uint16_t img) {
-    images_grid[x * num_parts_w + y] = img;
-}
-
 void CompositeImage::unload_from_mem() {
     is_loaded = false;
     stored_image.release();
@@ -142,8 +138,8 @@ color CompositeImage::crop_avg_color(int left, int top, int width, int height) {
     return clr;
 }
 
-void CompositeImage::change_grid(int x, int y, uint16_t image) {
-    images_grid[x * num_parts_w + y] = image;
+void CompositeImage::set_image_at(int x, int y, uint16_t img) {
+    images_grid[x * num_parts_w + y] = img;
 }
 
 color CompositeImage::image_average(cv::Mat* image) {

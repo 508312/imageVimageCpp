@@ -196,7 +196,7 @@ void ImageBuilder::prune(int ind, std::vector<std::vector<pos>> positions,
             left = p.y * (width/parts_w);
             color avg = images[ind].crop_avg_color(left, top, width/parts_w, height/parts_h);
             closest = find_closest_image(-1, avg, imgs_abv_thrsh);
-            images[ind].change_grid(p.x, p.y, closest);
+            images[ind].set_image_at(p.x, p.y, closest);
         }
     }
 

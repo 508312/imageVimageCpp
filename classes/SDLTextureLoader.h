@@ -20,16 +20,19 @@ class SDLTextureLoader : public TextureLoader<SDL_Texture*>
         SDLTextureLoader(ImageBuilder* img_bldr, std::vector<int>& resoluts, SDL_Renderer* renderer, int load_threshold);
         virtual ~SDLTextureLoader();
 
-        void set_texture(CompositeImage* image, cv::Mat& pixels);
+        /** Sets textures for resolutions starting at start_ind and ending at end_ind (not inclusive). **/
         void set_texture(CompositeImage* image, cv::Mat& pixels, uint8_t start_ind, uint8_t end_ind);
 
+        /** Loads set of images. **/
         void load_set(std::vector<CompositeImage*>& images);
 
-        virtual void free_texture(int res_index, int img_index);
+        /** Frees texture specified by res_index and img_index. **/
+        virtual void free_texture(int res_index, int img_index); // TODO: move to protected, solve error ?
 
     protected:
 
     private:
+        /** Renderer to which to load textures to. **/
         SDL_Renderer* renderer;
 };
 

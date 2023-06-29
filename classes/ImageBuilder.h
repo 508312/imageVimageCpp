@@ -21,27 +21,32 @@ class ImageBuilder {
         ImageBuilder(int parts_w, int parts_h, int w, int h, int fin_up, int prune, int closeness);
         virtual ~ImageBuilder();
 
+        /** Loads images from specified path. **/
         void load_images(std::string path);
 
+        /** Subdivides all images. **/
         void build_images();
 
+        /** Creates image from subdivided grid and outputs result in concatted_image. **/
         void create_final(int ind, cv::Mat& concatted_image);
 
+        /** Returns number of images. **/
         int get_num_images();
 
+        /** Calculates the size of a small image. **/
         static int calculate_small_dim(int dim, int parts, float upscale);
 
+        /** Concats the grid using resized_images as the memo table. Outputs result in @full **/
         static void concat_all(int rows, int cols, float final_upscale,
                                 std::vector<cv::Mat>& resized_images,
                                 std::vector<uint16_t>* grid, cv::Mat& full);
 
+        /** Returns vector with original images. **/
         std::vector<CompositeImage>* get_images();
+        /** Returns vector of pointers to images. **/
         std::vector<CompositeImage*>& get_pointers_to_images();
 
-        void prune(int ind, std::vector<std::vector<pos>> positions,
-                        std::vector<int>& amounts,
-                        std::vector<CompositeImage*>* imgs_abv_thrsh);
-
+        /** Fills memo table resized_images. **/
         static void fill_table(int num_images, int small_width, int small_height, float final_upscale,
                                 std::vector<cv::Mat>& resized_images,
                                 std::vector<CompositeImage*>& images_to_resize);
@@ -49,8 +54,13 @@ class ImageBuilder {
     protected:
 
     private:
-        /** Finds closest image to specified clr. Ignores image under ind.
-        *  TODO: refactor, make ind a set probably, generally make better system
+        /** Prunes specified image. **/
+        void prune(int ind, std::vector<std::vector<pos>> positions,
+                        std::vector<int>& amounts,
+                        std::vector<CompositeImage*>* imgs_abv_thrsh);
+
+        /** Finds closest image to specified clr. Can ignore image under ind.
+        *  TODO: refactor, make ind a set probably, make the Included_images vector or smth like that.
         */
         static int find_closest_image(int ind, color& clr, std::vector<CompositeImage*>* imgs);
         void build_image(int ind);
@@ -80,12 +90,12 @@ class ImageBuilder {
         /// By how much to upscale @width and @height in the compiled image.
         float final_upscale;
 
-        /*** Replace images whose amount is less than this threshold.
-         With a value of 10 image still looks good, and quite fast.
+        /** Replace images whose amount is less than this threshold.
+            With a value of 10 image still looks good, and quite fast.
         */
         int prune_threshold = 0;
 
-        /***Threshold below which to just take previous image when compiling composition.
+        /** Threshold below which to just take previous image when compiling composition.
             Good value to use is 1. 2 is acceptable.
             For 4 the artifacts are visible and not worth the speedup.
          */

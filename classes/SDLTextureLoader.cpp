@@ -23,7 +23,6 @@ SDLTextureLoader::SDLTextureLoader(ImageBuilder* img_bldr, std::vector<int>& res
 }
 
 SDLTextureLoader::~SDLTextureLoader(){
-    //TODO:: CHECK IF THIS IS SAFE, i mean it should be, right? But then calling free textures inside parent class doesnt work.
     free_textures();
 }
 
@@ -49,10 +48,6 @@ void SDLTextureLoader::set_texture(CompositeImage* image, cv::Mat& pixels, uint8
 
         SDL_UpdateTexture(mipmaps[i][image->get_ind()], NULL, (void*)pixels.data, pixels.step1());
     }
-}
-
-void SDLTextureLoader::set_texture(CompositeImage* image, cv::Mat& pixels) {
-    set_texture(image, pixels, 0, resolutions.size());
 }
 
 void SDLTextureLoader::load_set(std::vector<CompositeImage*>& images) {
