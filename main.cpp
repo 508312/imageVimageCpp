@@ -36,7 +36,7 @@ void init_vars(int argc, char** args, int& x_window, int& y_window,
                int& detail_width, int& local_transition_width, char** render_type,
                int& prune_threshold, int& closeness_thresh, float& final_upscale,
                std::vector<int>& resolutions, char** folder);
-void closeSDL(SDL_Window** window, SDL_Renderer** renderer, SDL_Surface** screenSurface);
+void closeSDL(SDL_Window** window, SDL_Renderer** renderer, SDL_Surface** screen_surface);
 void clearScreen(SDL_Renderer* renderer);
 
 int main( int argc, char* args[] ) {
@@ -48,12 +48,11 @@ int main( int argc, char* args[] ) {
     std::vector<int> resolutions;
     char* render_type;
     char* folder = "qats_small";
-
     Timer t1;
     Timer t2;
 
     SDL_Window* window = NULL;
-    SDL_Surface* screenSurface = NULL;
+    SDL_Surface* screen_surface = NULL;
     SDL_Renderer* renderer = NULL;
     SDL_Event event;
     bool running = true;
@@ -65,7 +64,7 @@ int main( int argc, char* args[] ) {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, render_type);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
-    if( !init_sdl(&window, &screenSurface, &renderer, x_win_res, y_win_res) ) {
+    if( !init_sdl(&window, &screen_surface, &renderer, x_win_res, y_win_res) ) {
         std::cout << "FAILED TO CREATE A WINDOW" << std::endl;
         return 0;
     }
@@ -148,7 +147,7 @@ int main( int argc, char* args[] ) {
 
     //test_loader.free_textures();
     std::cout << "here" << std::endl;
-    closeSDL(&window, &renderer, &screenSurface);
+    closeSDL(&window, &renderer, &screen_surface);
     std::cout << "here2" << std::endl;
 
     return 0;
@@ -175,7 +174,6 @@ void init_vars(int argc, char** args, int& x_window, int& y_window,
     *render_type = "software";
 
     for (int i = 1; i < argc; i++) {
-        std::cout << "here" << std::endl;
         if (!strcmp(args[i], "-winx")) {
             i++;
             x_window = atoi(args[i]);
@@ -207,6 +205,7 @@ void init_vars(int argc, char** args, int& x_window, int& y_window,
         } if (!strcmp(args[i], "-render")) {
             i++;
             *render_type = args[i];
+            std::cout << "renderer " << *render_type << std::endl;
         } if (!strcmp(args[i], "-upscale")) {
             i++;
             final_upscale = atof(args[i]);
@@ -254,7 +253,8 @@ bool init_sdl(SDL_Window** window_ptr, SDL_Surface** surface_ptr, SDL_Renderer**
 
 /* Handles closing the window and deallocating the memory. */
 void closeSDL(SDL_Window** window, SDL_Renderer** renderer, SDL_Surface** screenSurface) {
-    // TODO: find out what causes crash of a program on line below
+    // TODO: find out what causes freeze of a program on line below. It only happens when a few images have been loaded in.
+    //                                      Doesn't happen when only a few image textures have been loaded into memory.
     SDL_DestroyRenderer(*renderer);
     std::cout << "destroyed renderer" << std::endl;
     *renderer = NULL;
@@ -272,7 +272,3 @@ void clearScreen(SDL_Renderer* renderer) {
     SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
 }
-
-
-//800x800 12FPS
-//800x800 8.9FPS
