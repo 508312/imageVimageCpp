@@ -44,7 +44,6 @@ void TextureSetter::set_below_threshold(CompositeImage* image, cv::Mat& pixels) 
     set_texture(image, pixels, load_threshold, resolutions.size());
 }
 
-#include <windows.h>
 void TextureSetter::set_above_threshold(CompositeImage* image, cv::Mat& pixels) {
     if (load_threshold <= 0) {
         return;
@@ -52,7 +51,6 @@ void TextureSetter::set_above_threshold(CompositeImage* image, cv::Mat& pixels) 
 
     set_texture(image, pixels, 0, load_threshold);
 
-    Sleep(5);
     texture_statuses[image->get_ind()] = TEXTURE_LOADED;
 }
 
