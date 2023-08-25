@@ -24,6 +24,7 @@
 #include "SDLGuimage.h"
 #include "StatsCounter.h"
 #include "ImageSyncer.h"
+#include "starting_variables.h"
 
 #include <stdlib.h>
 
@@ -31,23 +32,15 @@
 
 bool init_sdl(SDL_Window** window_ptr, SDL_Surface** surface_ptr, SDL_Renderer** renderer_ptr,
                int x_win_res, int y_win_res);
-void init_vars(int argc, char** args, int& x_window, int& y_window,
-               int& x_image, int& y_image, int& parts_x, int& parts_y,
-               int& detail_width, int& local_transition_width, char** render_type,
-               int& prune_threshold, int& closeness_thresh, float& final_upscale,
-               std::vector<int>& resolutions, char** folder);
+void initialize_starting_variables(int argc, char** args, starting_variables& vars);
 void closeSDL(SDL_Window** window, SDL_Renderer** renderer, SDL_Surface** screen_surface);
 void clearScreen(SDL_Renderer* renderer);
 
 int main( int argc, char* args[] ) {
     SetProcessDPIAware();
 
-    int x_win_res, y_win_res, x_img_res, y_img_res, x_img_parts, y_img_parts,
-    detail_width, local_transition_threshold, prune_threshold, closeness_threshold;
-    float final_upscale;
-    std::vector<int> resolutions;
-    char* render_type;
-    char* folder = "qats_small";
+    starting_variables starting_vars;
+
     Timer t1;
     Timer t2;
 
@@ -57,25 +50,23 @@ int main( int argc, char* args[] ) {
     SDL_Event event;
     bool running = true;
 
-    init_vars(argc, args, x_win_res, y_win_res, x_img_res, y_img_res, x_img_parts, y_img_parts,
-          detail_width, local_transition_threshold, &render_type, prune_threshold, closeness_threshold,
-          final_upscale, resolutions, &folder);
+    initialize_starting_variables(argc, args, starting_vars);
 
-    SDL_SetHint(SDL_HINT_RENDER_DRIVER, render_type);
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, starting_vars.render_type);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
-    if( !init_sdl(&window, &screen_surface, &renderer, x_win_res, y_win_res) ) {
+    if( !init_sdl(&window, &screen_surface, &renderer, starting_vars.window_width, starting_vars.window_height) ) {
         std::cout << "FAILED TO CREATE A WINDOW" << std::endl;
         return 0;
     }
 
-    ImageBuilder builder(x_img_parts, y_img_parts, x_img_res, y_img_res, final_upscale,
-                          prune_threshold, closeness_threshold);
-    builder.load_images(folder);
+    ImageBuilder builder(starting_vars.image_number_of_cols, starting_vars.image_number_of_rows, starting_vars.image_width, starting_vars.image_height,
+                        starting_vars.compiled_upscale, starting_vars.prune_threshold, starting_vars.closeness_threshold);
+    builder.load_images(starting_vars.folder);
 
     t1.start();
     builder.build_images();
-    SDLTextureLoader test_loader(&builder, resolutions, renderer, 2);
+    SDLTextureLoader test_loader(&builder, starting_vars.resolutions, renderer, 2);
     std::vector<CompositeImage*> ptrs_to_imgs = builder.get_pointers_to_images();
     test_loader.load_set(ptrs_to_imgs);
 
@@ -91,7 +82,8 @@ int main( int argc, char* args[] ) {
      << " total images: " << images->size() <<
      " reachable from start: " << stats_counter.calc_reachable_from_img(&(*images)[0]) << std::endl;
 
-    SDLGuimage test(x_win_res, y_win_res, detail_width, &test_loader, &(*images)[0], renderer, &stats_counter);
+    SDLGuimage test(starting_vars.image_width, starting_vars.image_height, starting_vars.detailed_image_width,
+                    &test_loader, &(*images)[0], renderer, &stats_counter);
 
     float zoom = 1;
     test.change_zoom(zoom);
@@ -119,6 +111,7 @@ int main( int argc, char* args[] ) {
 
                 clearScreen(renderer);
                 test.generate_image();
+
                 std::cout << "FPS " << 1000000.0/t.get() << std::endl;
             } else if (event.type == SDL_KEYDOWN) {
                 if (event.key.keysym.sym == SDLK_f) {
@@ -144,7 +137,6 @@ int main( int argc, char* args[] ) {
         SDL_RenderPresent(renderer);
         SDL_Delay(0);
     }
-
     //test_loader.free_textures();
     std::cout << "here" << std::endl;
     closeSDL(&window, &renderer, &screen_surface);
@@ -154,75 +146,73 @@ int main( int argc, char* args[] ) {
 }
 
 
-void init_vars(int argc, char** args, int& x_window, int& y_window,
-               int& x_image, int& y_image, int& parts_x, int& parts_y,
-               int& detail_width, int& local_transition_width, char** render_type,
-               int& prune_threshold, int& closeness_thresh, float& final_upscale,
-               std::vector<int>& resolutions, char** folder) {
-    x_window = 1600;
-    y_window = 1600;
-    x_image = 1600;
-    y_image = 1600;
-    parts_x = 400;
-    parts_y = 400;
-    prune_threshold = 3;
-    closeness_thresh = 0;
-    final_upscale = 1;
-    detail_width = 1900;
-    local_transition_width = 1600;
-    resolutions = {1500, 800, 400, 200, 100, 50, 25, 10, 5};
-    *render_type = "software";
+void initialize_starting_variables(int argc, char** args, starting_variables& vars) {
+    vars.window_width = 1600;
+    vars.window_height = 1600;
+    vars.image_width = 1600;
+    vars.image_height = 1600;
+    vars.image_number_of_cols = 320;
+    vars.image_number_of_rows = 320;
+    vars.prune_threshold = 3;
+    vars.closeness_threshold = 0;
+    vars.compiled_upscale = 1;
+    vars.detailed_image_width = 1900;
+    vars.local_transition_width = 1600;
+    vars.resolutions = {1500, 800, 400, 200, 100, 50, 25, 10, 5};
+    vars.render_type = "software";
+    vars.folder = "qats_small";
+
 
     for (int i = 1; i < argc; i++) {
-        if (!strcmp(args[i], "-winx")) {
+        if (!strcmp(args[i], "--winx")) {
             i++;
-            x_window = atoi(args[i]);
-        } if (!strcmp(args[i], "-winy")) {
+            vars.window_width = atoi(args[i]);
+        } if (!strcmp(args[i], "--winy")) {
             i++;
-            y_window = atoi(args[i]);
-        } if (!strcmp(args[i], "-imgx")) {
+            vars.window_height = atoi(args[i]);
+        } if (!strcmp(args[i], "--imgx")) {
             i++;
-            x_image = atoi(args[i]);
-        } if (!strcmp(args[i], "-imgy")) {
+            vars.image_width = atoi(args[i]);
+        } if (!strcmp(args[i], "--imgy")) {
             i++;
-            y_image = atoi(args[i]);
-        } if (!strcmp(args[i], "-parts_x")) {
+            vars.image_height = atoi(args[i]);
+        } if (!strcmp(args[i], "--parts_x")) {
             std::cout << "inside" << std::endl;
             i++;
-            parts_x = atoi(args[i]);
-        } if (!strcmp(args[i], "-parts_y")) {
+            vars.image_number_of_cols = atoi(args[i]);
+        } if (!strcmp(args[i], "--parts_y")) {
             i++;
-            parts_y = atoi(args[i]);
-        } if (!strcmp(args[i], "-detail_width")) {
+            vars.image_number_of_rows = atoi(args[i]);
+        } if (!strcmp(args[i], "--detail_width")) {
             i++;
-            detail_width = atoi(args[i]);
-        } if (!strcmp(args[i], "-prune")) {
+            vars.detailed_image_width = atoi(args[i]);
+        } if (!strcmp(args[i], "--prune")) {
             i++;
-            prune_threshold = atoi(args[i]);
-        } if (!strcmp(args[i], "-closeness")) {
+            vars.prune_threshold = atoi(args[i]);
+        } if (!strcmp(args[i], "--closeness")) {
             i++;
-            closeness_thresh = atoi(args[i]);
-        } if (!strcmp(args[i], "-render")) {
+            vars.closeness_threshold = atoi(args[i]);
+        } if (!strcmp(args[i], "--render")) {
             i++;
-            *render_type = args[i];
-            std::cout << "renderer " << *render_type << std::endl;
-        } if (!strcmp(args[i], "-upscale")) {
+            vars.render_type = args[i];
+            std::cout << "renderer " << *vars.render_type << std::endl;
+        } if (!strcmp(args[i], "--upscale")) {
             i++;
-            final_upscale = atof(args[i]);
-        } if (!strcmp(args[i], "-transition_width")) {
+            vars.compiled_upscale = atof(args[i]);
+        } if (!strcmp(args[i], "--transition_width")) {
             i++;
-            local_transition_width = atoi(args[i]);
-        } if (!strcmp(args[i], "-resolutions")) {
+            vars.local_transition_width = atoi(args[i]);
+        } if (!strcmp(args[i], "--resolutions")) {
             i++;
             int num_res = atoi(args[i]);
-            resolutions.clear();
+            vars.resolutions.clear();
             for (int j = 0; j < num_res; j++) {
                 i++;
-                resolutions.push_back(atoi(args[i]));
+                vars.resolutions.push_back(atoi(args[i]));
             }
-        } if (!strcmp(args[i], "-folder")) {
+        } if (!strcmp(args[i], "--folder")) {
             i++;
-            *folder = args[i];
+            vars.folder = args[i];
         }
     }
 }
@@ -255,8 +245,9 @@ bool init_sdl(SDL_Window** window_ptr, SDL_Surface** surface_ptr, SDL_Renderer**
 void closeSDL(SDL_Window** window, SDL_Renderer** renderer, SDL_Surface** screenSurface) {
     // TODO: find out what causes freeze of a program on line below. It only happens when a few images have been loaded in.
     //                                      Doesn't happen when only a few image textures have been loaded into memory.
+    SDL_ClearError();
     SDL_DestroyRenderer(*renderer);
-    std::cout << "destroyed renderer" << std::endl;
+    std::cout << "destroyed renderer " << SDL_GetError() << std::endl;
     *renderer = NULL;
     SDL_FreeSurface(*screenSurface);
     std::cout << "destroyed surface" << std::endl;
