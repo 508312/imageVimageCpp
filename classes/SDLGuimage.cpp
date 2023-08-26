@@ -93,6 +93,14 @@ float SDLGuimage::calculate_small_y() {
     return composite_image->get_height() / (float)composite_image->get_num_parts_height();
 }
 
+float SDLGuimage::calculate_warp_scale_x() {
+    return 1 + (width/(calculate_small_x() * local_transition_zoom) - 1) * zoom/local_transition_zoom;
+}
+
+float SDLGuimage::calculate_warp_scale_y() {
+    return 1 + (height/(calculate_small_y() * local_transition_zoom) - 1) * zoom/local_transition_zoom;
+}
+
 void SDLGuimage::create_detailed() {
     float theoretical_x = calculate_small_x();
     float theoretical_y = calculate_small_y();

@@ -120,6 +120,11 @@ class SDLGuimage
         bool should_be_drawn();
 
     private:
+        /** Calculates factor by which images should be warped on x. **/
+        float calculate_warp_scale_x();
+        /** Calculates factor by which images should be warped on y. **/
+        float calculate_warp_scale_y();
+
         /** Current zoom of an image.**/
         float zoom = 1;
 
