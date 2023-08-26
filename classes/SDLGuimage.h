@@ -22,22 +22,22 @@ class SDLGuimage
 {
         public:
 
-        SDLGuimage( int w, int h, int detail_thresh,
+        SDLGuimage( int w, int h, int detail_thresh, int local_transition_thresh,
                     SDLTextureLoader* texloader, CompositeImage* starting_image,
                     SDL_Renderer* renderer, StatsCounter* stats_cntr);
 
-        SDLGuimage( int w, int h, int row, int col, int detail_thresh,
+        SDLGuimage( int w, int h, int row, int col, int detail_thresh, int local_transition_thresh,
                     SDLTextureLoader* texloader, CompositeImage* starting_image,
                     SDL_Renderer* renderer);
 
-        SDLGuimage( int w, int h, int row, int col, int detail_thresh,
+        SDLGuimage( int w, int h, int row, int col, int detail_thresh, int local_transition_thresh,
                     SDLTextureLoader* texloader, CompositeImage* starting_image,
                     SDL_Renderer* renderer, SDLGuimage* parent);
 
-        SDLGuimage(int w, int h, int detail_thresh, SDLTextureLoader* texloader,
+        SDLGuimage(int w, int h, int detail_thresh, int local_transition_thresh, SDLTextureLoader* texloader,
                     CompositeImage* starting_image, SDL_Renderer* renderer);
 
-        SDLGuimage( int w, int h, int row, int col, int detail_thresh,
+        SDLGuimage( int w, int h, int row, int col, int detail_thresh, int local_transition_thresh,
                         SDLTextureLoader* texloader, CompositeImage* starting_image,
                          SDL_Renderer* renderer, SDLGuimage* parent, StatsCounter* stats_cntr);
 

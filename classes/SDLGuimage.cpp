@@ -10,7 +10,7 @@
 #include <stack>
 #include <queue>
 
-SDLGuimage::SDLGuimage( int w, int h, int row, int col, int detail_thresh,
+SDLGuimage::SDLGuimage( int w, int h, int row, int col, int detail_thresh, int local_transition_thresh,
                         SDLTextureLoader* texloader, CompositeImage* starting_image,
                          SDL_Renderer* renderer, SDLGuimage* parent, StatsCounter* stats_cntr) {
     //ctor
@@ -40,27 +40,27 @@ SDLGuimage::SDLGuimage( int w, int h, int row, int col, int detail_thresh,
 
     change_cam_pos(width/2, height/2);
 }
-SDLGuimage::SDLGuimage( int w, int h, int row, int col, int detail_thresh,
+SDLGuimage::SDLGuimage( int w, int h, int row, int col, int detail_thresh, int local_transition_thresh,
                         SDLTextureLoader* texloader, CompositeImage* starting_image,
                          SDL_Renderer* renderer, SDLGuimage* parent)
-        : SDLGuimage(w, h, row, col, detail_thresh, texloader, starting_image, renderer, parent, nullptr) {
+        : SDLGuimage(w, h, row, col, detail_thresh, local_transition_thresh, texloader, starting_image, renderer, parent, nullptr) {
 }
 
-SDLGuimage::SDLGuimage( int w, int h, int row, int col, int detail_thresh,
+SDLGuimage::SDLGuimage( int w, int h, int row, int col, int detail_thresh, int local_transition_thresh,
                         SDLTextureLoader* texloader, CompositeImage* starting_image,
                          SDL_Renderer* renderer)
-        : SDLGuimage(w, h, row, col, detail_thresh, texloader, starting_image, renderer, nullptr, nullptr) {
+        : SDLGuimage(w, h, row, col, detail_thresh, local_transition_thresh, texloader, starting_image, renderer, nullptr, nullptr) {
 
 }
-SDLGuimage::SDLGuimage( int w, int h, int detail_thresh,
+SDLGuimage::SDLGuimage( int w, int h, int detail_thresh, int local_transition_thresh,
                         SDLTextureLoader* texloader,
                         CompositeImage* starting_image, SDL_Renderer* renderer)
-        : SDLGuimage(w, h, 0, 0, detail_thresh, texloader, starting_image, renderer, nullptr, nullptr) {
+        : SDLGuimage(w, h, 0, 0, detail_thresh, local_transition_thresh, texloader, starting_image, renderer, nullptr, nullptr) {
 }
 
-SDLGuimage::SDLGuimage( int w, int h, int detail_thresh, SDLTextureLoader* texloader,
+SDLGuimage::SDLGuimage( int w, int h, int detail_thresh, int local_transition_thresh, SDLTextureLoader* texloader,
                         CompositeImage* starting_image, SDL_Renderer* renderer, StatsCounter* stats_cntr)
-        : SDLGuimage(w, h, 0, 0, detail_thresh, texloader, starting_image, renderer, nullptr, stats_cntr) {
+        : SDLGuimage(w, h, 0, 0, detail_thresh, local_transition_thresh, texloader, starting_image, renderer, nullptr, stats_cntr) {
 }
 
 
@@ -202,7 +202,7 @@ void SDLGuimage::add_next_images(int min_x_ind, int min_y_ind, int max_x_ind, in
         for (int j = min_x_ind; j < max_x_ind; j++) {
             std::cout << "ADDING " << i << " " << j << std::endl;
             img = composite_image->get_image_at(i, j);
-            next_images.push_back(SDLGuimage(width, height, i, j, detail_threshold,
+            next_images.push_back(SDLGuimage(width, height, i, j, detail_threshold, local_transition_zoom * calculate_small_x(),
                                               texture_loader, img, renderer, this, stats_counter));
             next_image_exists = true;
 
