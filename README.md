@@ -9,7 +9,7 @@ Refactoring will be done, the most unsatisfied I am with ImageBuilder and how it
 and how "addons" like StatsCounter are initialized from outside.
 
 ###**Building**
-Feel free to try to build the project, you will need the following libraries: OpenCV 4.6.0, SDL2 2.28.1, OneTBB. 
+Feel free to build the project, you will need the following libraries: OpenCV 4.6.0, SDL2 2.28.1, OneTBB. 
 The classes folder is src.
 I am currently working on this project alone, so I am yet to make a proper way to build the project. 
 If you run into any issues contact me.
