@@ -1,4 +1,4 @@
-(gifs might take a second to load fully)
+(please wait for the gifs to load)
 ![Sample Gif](https://github.com/508312/public-files/blob/master/demo/gif_hand.gif)
 ![Sample Gif](https://github.com/508312/public-files/blob/master/demo/gif_auto.gif)
 
