@@ -89,7 +89,7 @@ class CompositeImage {
         uint16_t num_parts_w;
         /** Number of parts to divide the image vertically. **/
         uint16_t num_parts_h;
-        /** Divided images width and height. **/
+        /** Resolution to load images at. **/
         uint16_t width, height;
         /** Number of unique images in the grid **/
         uint16_t num_unique_images = 0;

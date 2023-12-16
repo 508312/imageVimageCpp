@@ -7,7 +7,7 @@
 #include "ImageBuilder.h"
 #include "TextureStatus.h"
 
-/** Base class to set textures.S **/
+/** Base class to set textures. **/
 class TextureSetter
 {
     public:

@@ -167,7 +167,7 @@ class SDLGuimage
         /** Composite image belonging to the current Guimage. **/
         CompositeImage* composite_image;
 
-        /** Dynamically loads and uloads images of correct resolution. Persistent across all children.**/
+        /** Dynamically loads and unloads images of correct resolution. Persistent across all children.**/
         SDLTextureLoader* texture_loader;
 
         /** SDL renderer to draw images on window. Persistent across all children. **/

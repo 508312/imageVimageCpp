@@ -28,6 +28,7 @@ SDLTextureLoader::~SDLTextureLoader(){
 
 void SDLTextureLoader::set_texture(CompositeImage* image, cv::Mat& pixels, uint8_t start_ind, uint8_t end_ind) {
     for (int i = start_ind; i < end_ind; i++) {
+
         float scale = (float)resolutions[i]/pixels.cols;
         cv::resize(pixels, pixels, cv::Size(0, 0),
                     scale, scale, cv::INTER_AREA);
@@ -46,7 +47,9 @@ void SDLTextureLoader::set_texture(CompositeImage* image, cv::Mat& pixels, uint8
             }
         }
 
-        SDL_UpdateTexture(mipmaps[i][image->get_ind()], NULL, (void*)pixels.data, pixels.step1());
+        if (SDL_UpdateTexture(mipmaps[i][image->get_ind()], NULL, (void*)pixels.data, pixels.step1()) != 0) {
+            std::cout << "Writing pixels to texture failed, error " << SDL_GetError() << std::endl;
+        }
     }
 }
 
@@ -66,6 +69,8 @@ void SDLTextureLoader::load_set(std::vector<CompositeImage*>& images) {
 }
 
 void SDLTextureLoader::free_texture(int res_index, int img_index) {
+    if (mipmaps[res_index][img_index] != NULL) {
         SDL_DestroyTexture(mipmaps[res_index][img_index]);
         mipmaps[res_index][img_index] = NULL;
+    }
 }
