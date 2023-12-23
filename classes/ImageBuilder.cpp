@@ -43,7 +43,7 @@ void ImageBuilder::build_images() {
     std::vector<int> indexes;
 
     for (int i = 0; i < images.size(); i++) {
-        images[i].fill_grid_with_empty();
+        images[i].resizeGrid();
         indexes.push_back(i);
     }
 
@@ -61,7 +61,7 @@ void ImageBuilder::build_images() {
 
     cv::Mat tmp;
     std::for_each(std::execution::seq, indexes.begin(), indexes.end(), [&](int i){
-                  //images[i].coalesce_blocks(30);
+                  //images[i].coalesceBlocks(30);
                   create_final(i, tmp);});
 
 
@@ -77,8 +77,8 @@ void ImageBuilder::build_images() {
 
 void ImageBuilder::build_image(int ind) {
     int closest = -1;
-    int parts_w = images[ind].get_mNumWidthidth();
-    int parts_h = images[ind].get_mNumHeighteight();
+    int parts_w = images[ind].getNumWidth();
+    int parts_h = images[ind].getNumHeight();
     color crop_clr;
     int left, top;
     pos p;
@@ -92,7 +92,7 @@ void ImageBuilder::build_image(int ind) {
 
     Timer t;
 
-    images[ind].load_to_mem();
+    images[ind].loadImageToMemory();
     t.start();
 
     color left_avg;
@@ -107,14 +107,14 @@ void ImageBuilder::build_image(int ind) {
         for (int j = 0; j < parts_w; j++) {
             left = j * (width/parts_w);
 
-            avg = images[ind].crop_avg_color(left, top, width/parts_w, height/parts_h);
+            avg = images[ind].getCropAvgColor(left, top, width/parts_w, height/parts_h);
 
             if (i != 0 && j != 0) {
                 if (CompositeImage::distance(avg, left_avg) <= closeness_threshold) {
-                    closest = images[ind].get_image_index_at(i, j - 1);
+                    closest = images[ind].getImageIdAt(i, j - 1);
                 }
                 else if (CompositeImage::distance(avg, top_avgs[j]) <= closeness_threshold)
-                    closest = images[ind].get_image_index_at(i - 1, j);
+                    closest = images[ind].getImageIdAt(i - 1, j);
             }
             t1.start();
             if (closest == -1)
@@ -135,8 +135,8 @@ void ImageBuilder::build_image(int ind) {
 
             left_avg = avg;
             top_avgs[j] = avg;
-            //images[ind].push_to_grid(closest);
-            images[ind].set_image_at(i, j, closest);
+            //images[ind].pushToGrid(closest);
+            images[ind].setImageAt(i, j, closest);
             closest = -1;
         }
 
@@ -145,9 +145,9 @@ void ImageBuilder::build_image(int ind) {
     if (prune_threshold > 0) {
         prune(ind, positions, counter, &images_above_threshold);
     }
-    std::cout << "composing " << ind << " " << images[ind].get_name() << " done " << t.get() << std::endl;
+    std::cout << "composing " << ind << " " << images[ind].getName() << " done " << t.get() << std::endl;
     std::cout << "finding closest total " << t1tot << std::endl;
-    images[ind].unload_from_mem();
+    images[ind].unloadImageFromMemory();
 
 
     /*
@@ -157,7 +157,7 @@ void ImageBuilder::build_image(int ind) {
     for(std::unordered_map<CompositeImage*, int>::iterator iter = counter.begin(); iter != counter.end(); ++iter) {
         CompositeImage* key =  iter->first;
 
-        std::cout << key->get_name() << " --- " << counter[key] << std::endl;
+        std::cout << key->getName() << " --- " << counter[key] << std::endl;
 
         counter_of_couters[counter[key]]++;
     }
@@ -190,8 +190,8 @@ void ImageBuilder::prune(int ind, std::vector<std::vector<pos>> positions,
         if (positions[image].size() == 0) {
             continue;
         }
-        parts_w = images[image].get_mNumWidthidth();
-        parts_h = images[image].get_mNumHeighteight();
+        parts_w = images[image].getNumWidth();
+        parts_h = images[image].getNumHeight();
         total++;
         amounts[image] = 0;
         for(int k = 0; k < positions[image].size(); k++) {
@@ -199,9 +199,9 @@ void ImageBuilder::prune(int ind, std::vector<std::vector<pos>> positions,
 
             top = p.x * (height/parts_h);
             left = p.y * (width/parts_w);
-            color avg = images[ind].crop_avg_color(left, top, width/parts_w, height/parts_h);
+            color avg = images[ind].getCropAvgColor(left, top, width/parts_w, height/parts_h);
             closest = find_closest_image(-1, avg, imgs_abv_thrsh);
-            images[ind].set_image_at(p.x, p.y, closest);
+            images[ind].setImageAt(p.x, p.y, closest);
         }
     }
 
@@ -210,7 +210,7 @@ void ImageBuilder::prune(int ind, std::vector<std::vector<pos>> positions,
 }
 
 void ImageBuilder::create_final(int ind, cv::Mat& concatted_image) {
-    std::vector<uint16_t>* grid = images[ind].get_grid();
+    std::vector<uint16_t>* grid = images[ind].getGrid();
 
     std::cout << "concat started " << std::endl;
     concat_all(mNumHeight, mNumWidth, final_upscale, resized_images, grid, concatted_image);
@@ -245,7 +245,7 @@ void ImageBuilder::create_final(int ind, cv::Mat& concatted_image) {
         }
     }
     std::cout << "TOOOOK " << t.get() << std::endl;
-    //cv::imwrite(("folderCoal\\" + images[ind].get_name() + "_compiled" + images[ind].get_extension()).c_str(), concatted_image);
+    //cv::imwrite(("folderCoal\\" + images[ind].getName() + "_compiled" + images[ind].getExtension()).c_str(), concatted_image);
 
 }
 
@@ -265,10 +265,10 @@ void ImageBuilder::fill_table(int num_images, int small_width, int small_height,
             return;
         }
 
-        if (img->get_image() == NULL) {
-            resized_images[i] = img->load_image();
+        if (img->getImage() == NULL) {
+            resized_images[i] = img->loadImage();
         } else {
-            resized_images[i] = *img->get_image();
+            resized_images[i] = *img->getImage();
         }
         cv::resize(resized_images[i], resized_images[i],
                 cv::Size(small_width, small_height), 0, 0, cv::INTER_AREA);
@@ -320,7 +320,7 @@ int ImageBuilder::find_closest_image(int ind, color& clr, std::vector<CompositeI
             continue;
         }
         */
-        distance = (*imgs)[i]->get_distance_to_color(clr);
+        distance = (*imgs)[i]->distanceToColor(clr);
         if (distance < best_distance) {
             best_index = i;
             best_distance = distance;
@@ -348,8 +348,8 @@ void ImageBuilder::load_images(std::string path) {
     }
 
     std::for_each(std::execution::par_unseq, images.begin(), images.end(), [](CompositeImage& image){
-                  std::cout << image.get_name() << std::endl;
-                  image.compute_avg();});
+                  std::cout << image.getName() << std::endl;
+                  image.computeAvgColor();});
 
     pointers_to_images.resize(images.size());
     for (int i = 0; i < images.size(); i++) {

@@ -15,40 +15,41 @@
 CompositeImage::CompositeImage(int parts_w, int parts_h, std::string path,
                                 int w, int h, uint16_t index,  std::vector<CompositeImage*>* ind_map) {
     //std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
-    name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
-    extension = path.substr(path.find_last_of("."), path.length() - path.find_last_of("."));
-    this->path = path;
+    mName = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+    mExtension = path.substr(path.find_last_of("."), path.length() - path.find_last_of("."));
+    mPath = path;
     this->mNumWidth = parts_w;
     this->mNumHeight = parts_h;
     ind_img_map = ind_map;
-    this->index = index;
+    mId = index;
 
     mWidth = w;
     mHeight = h;
 
-    //compute_avg();
+    //computeAvgColor();
 }
 
 CompositeImage::~CompositeImage() {
     //dtor
 }
 
-void CompositeImage::fill_grid_with_empty() {
-    images_grid.resize(mNumHeight*mNumWidth);
+void CompositeImage::resizeGrid() {
+    mGrid.resize(mNumHeight*mNumWidth);
 }
 
-void CompositeImage::unload_from_mem() {
-    is_loaded = false;
-    stored_image.release();
+void CompositeImage::unloadImageFromMemory() {
+    mImgLoaded = false;
+    mStoredImage.release();
 }
 
-void CompositeImage::load_to_mem() {
-    is_loaded = true;
-    stored_image = load_image();
+void CompositeImage::loadImageToMemory() {
+    mImgLoaded = true;
+
+    mStoredImage = loadImage();
 }
 
-cv::Mat CompositeImage::load_image() {
-    cv::Mat pix = cv::imread(path, cv::IMREAD_COLOR);
+cv::Mat CompositeImage::loadImage() {
+    cv::Mat pix = cv::imread(mPath, cv::IMREAD_COLOR);
     int inter;
     if (pix.cols < mWidth) {
         inter = cv::INTER_CUBIC;
@@ -60,33 +61,33 @@ cv::Mat CompositeImage::load_image() {
     return pix;
 }
 
-std::string CompositeImage::get_name() {
-    return name;
+std::string CompositeImage::getName() {
+    return mName;
 }
 
-uint16_t CompositeImage::get_ind() {
-    return index;
+uint16_t CompositeImage::getId() {
+    return mId;
 }
 
-cv::Mat* CompositeImage::get_image() {
-    if (is_loaded){
-        return &stored_image;
+cv::Mat* CompositeImage::getImage() {
+    if (mImgLoaded){
+        return &mStoredImage;
     } else {
         return NULL;
     }
 }
 
-std::vector<uint16_t>* CompositeImage::get_grid() {
-    return &images_grid;
+std::vector<uint16_t>* CompositeImage::getGrid() {
+    return &mGrid;
 }
 
 /* Returns distance of average colors between two images. */
-int CompositeImage::get_distance_to_img(CompositeImage* img2) {
-    return distance(get_avg_color(), img2->get_avg_color());
+int CompositeImage::distanceToImage(CompositeImage* img2) {
+    return distance(getAvgColor(), img2->getAvgColor());
 }
 
-int CompositeImage::get_distance_to_color(const color& clr) {
-    return distance(get_avg_color(), clr);
+int CompositeImage::distanceToColor(const color& clr) {
+    return distance(getAvgColor(), clr);
 }
 
 int CompositeImage::distance(const color& c1, const color& c2) {
@@ -97,52 +98,52 @@ int CompositeImage::distance(const color& c1, const color& c2) {
 }
 
 
-color CompositeImage::get_avg_color() {
-    return average;
+color CompositeImage::getAvgColor() {
+    return mAvgColor;
 }
 
-std::string CompositeImage::get_extension(){
-    return extension;
+std::string CompositeImage::getExtension(){
+    return mExtension;
 }
 
-CompositeImage* CompositeImage::get_image_at(int x, int y) {
-    return (*ind_img_map)[images_grid[x * mNumWidth + y]];
+CompositeImage* CompositeImage::getImageAt(int x, int y) {
+    return (*ind_img_map)[mGrid[x * mNumWidth + y]];
 }
 
-uint16_t CompositeImage::get_image_index_at(int x, int y) {
-    return images_grid[x * mNumWidth + y];
+uint16_t CompositeImage::getImageIdAt(int x, int y) {
+    return mGrid[x * mNumWidth + y];
 }
 
-color CompositeImage::crop_avg_color(int left, int top, int width, int height) {
+color CompositeImage::getCropAvgColor(int left, int top, int width, int height) {
     cv::Rect crop(left, top, width, height);
 
     cv::Mat pix;
 
     bool free_flag = false;
 
-    if (get_image() == NULL) {
-        load_to_mem();
+    if (getImage() == NULL) {
+        loadImageToMemory();
         free_flag = true;
     } else {
-        pix = *get_image();
+        pix = *getImage();
     }
 
-    cv::Mat cropped(stored_image, crop);
+    cv::Mat cropped(mStoredImage, crop);
 
-    color clr = image_average(&cropped);
+    color clr = imageAvgColor(&cropped);
 
     if (free_flag) {
-        unload_from_mem();
+        unloadImageFromMemory();
     }
 
     return clr;
 }
 
-void CompositeImage::set_image_at(int x, int y, uint16_t img) {
-    images_grid[x * mNumWidth + y] = img;
+void CompositeImage::setImageAt(int x, int y, uint16_t img) {
+    mGrid[x * mNumWidth + y] = img;
 }
 
-color CompositeImage::image_average(cv::Mat* image) {
+color CompositeImage::imageAvgColor(cv::Mat* image) {
     color c;
 
     cv::Mat pixels = *image;
@@ -168,46 +169,43 @@ color CompositeImage::image_average(cv::Mat* image) {
     return c;
 }
 
-void CompositeImage::push_to_grid(uint16_t image) {
-    images_grid.push_back(image);
+void CompositeImage::pushToGrid(uint16_t image) {
+    mGrid.push_back(image);
 }
 
-void CompositeImage::set_num_unique_images(int num) {
-    num_unique_images = num;
-}
-int CompositeImage::get_mNumWidthidth() {
+int CompositeImage::getNumWidth() {
     return mNumWidth;
 }
 
-int CompositeImage::get_mNumHeighteight() {
+int CompositeImage::getNumHeight() {
     return mNumHeight;
 }
 
-int CompositeImage::get_width() {
+int CompositeImage::getWidth() {
     return mWidth;
 }
 
-int CompositeImage::get_height() {
+int CompositeImage::getHeight() {
     return mHeight;
 }
 
-void CompositeImage::compute_avg() {
+void CompositeImage::computeAvgColor() {
     cv::Mat pix;
     bool free_flag = false;
-    if (get_image() == NULL) {
-        load_to_mem();
+    if (getImage() == NULL) {
+        loadImageToMemory();
         free_flag = true;
     }
 
-    //cv::resize(stored_image, stored_image, cv::Size(width/num_parts, height/num_parts), 0, 0, cv::INTER_AREA);
-    average = image_average(&stored_image);
+    //cv::resize(mStoredImage, mStoredImage, cv::Size(width/num_parts, height/num_parts), 0, 0, cv::INTER_AREA);
+    mAvgColor = imageAvgColor(&mStoredImage);
 
     if (free_flag) {
-        unload_from_mem();
+        unloadImageFromMemory();
     }
 }
 
-void CompositeImage::coalesce_blocks(int max_size) {
+void CompositeImage::coalesceBlocks(int max_size) {
     int ii;
     int ij;
     uint16_t start_ind;
@@ -215,7 +213,7 @@ void CompositeImage::coalesce_blocks(int max_size) {
     uint32_t max_j;
     for (int pi = 0; pi < mNumHeight - 1; pi++) {
         for (int pj = 0; pj < mNumWidth - 1; pj++) {
-            start_ind = get_image_index_at(pi, pj);
+            start_ind = getImageIdAt(pi, pj);
             if (start_ind == (uint16_t)-1 || start_ind == (uint16_t)-2) {
                 continue;
             }
@@ -257,7 +255,7 @@ void CompositeImage::coalesce_blocks(int max_size) {
                     break;
                 }
 
-                if (get_image_index_at(ii, ij) != start_ind) {
+                if (getImageIdAt(ii, ij) != start_ind) {
                     int diag_i = pi + std::max(ii - pi, ij - pj);
                     int diag_j = pj + diag_i - pi;
                     if (diag_i < max_i) {
@@ -281,11 +279,11 @@ void CompositeImage::coalesce_blocks(int max_size) {
                         continue;
                     }
                     //if (i == pi + 1 || j == pj + 1) {
-                    //    set_image_at(i, j, -3);
+                    //    setImageAt(i, j, -3);
                     if (i == pi && j == max_j - 1) {
-                        set_image_at(i, j, -2);
+                        setImageAt(i, j, -2);
                     } else {
-                        set_image_at(i, j, -1);
+                        setImageAt(i, j, -1);
                     }
                 }
             }

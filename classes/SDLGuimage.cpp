@@ -26,7 +26,7 @@ SDLGuimage::SDLGuimage( int w, int h, int row, int col, int detail_thresh, int l
 
     composite_image = starting_image;
 
-    local_transition_zoom = composite_image->get_width()/calculate_small_x();
+    local_transition_zoom = composite_image->getWidth()/calculate_small_x();
 
     this->renderer = renderer;
     this->parent = parent;
@@ -86,11 +86,11 @@ void SDLGuimage::set_local_transition_threshold(int thresh_width) {
 }
 
 float SDLGuimage::calculate_small_x() {
-    return composite_image->get_width() / (float)composite_image->get_mNumWidthidth();
+    return composite_image->getWidth() / (float)composite_image->getNumWidth();
 }
 
 float SDLGuimage::calculate_small_y() {
-    return composite_image->get_height() / (float)composite_image->get_mNumHeighteight();
+    return composite_image->getHeight() / (float)composite_image->getNumHeight();
 }
 
 float SDLGuimage::calculate_warp_scale_x() {
@@ -143,7 +143,7 @@ void SDLGuimage::create_detailed() {
             x_start = std::max((cam_min_x - j*theoretical_x) * zoom, 0.0f);
             x_end = std::min((cam_max_x - j*theoretical_x)*zoom, theoretical_x*zoom);
 
-            img = composite_image->get_image_at(i, j);
+            img = composite_image->getImageAt(i, j);
             //t.start();
             tex = texture_loader->get_texture(img, theoretical_x*zoom);
             //sum += t.get();
@@ -186,9 +186,9 @@ void SDLGuimage::calculate_bound_indexes(int& min_x_ind, int& min_y_ind, int& ma
     min_y_ind = std::max((int)(cam_min_y/theoretical_y),
                               0);
     max_x_ind = std::min((int)std::ceil(cam_max_x/theoretical_x),
-                              composite_image->get_mNumWidthidth());
+                              composite_image->getNumWidth());
     max_y_ind = std::min((int)std::ceil(cam_max_y/theoretical_y),
-                              composite_image->get_mNumHeighteight());
+                              composite_image->getNumHeight());
 }
 
 void SDLGuimage::add_next_images() {
@@ -202,17 +202,17 @@ void SDLGuimage::add_next_images(int min_x_ind, int min_y_ind, int max_x_ind, in
     float theoretical_x = calculate_small_x();
     float theoretical_y = calculate_small_y();
 
-    float new_zoom = (theoretical_x * zoom)/composite_image->get_width();
+    float new_zoom = (theoretical_x * zoom)/composite_image->getWidth();
     double new_x, new_y;
     CompositeImage* img;
 
     for (int i = min_y_ind; i < max_y_ind; i++) {
         for (int j = min_x_ind; j < max_x_ind; j++) {
             std::cout << "ADDING " << i << " " << j << std::endl;
-            if (composite_image->get_image_index_at(i, j) == (uint16_t)-1 ||
-                 composite_image->get_image_index_at(i, j) == (uint16_t)-2)
+            if (composite_image->getImageIdAt(i, j) == (uint16_t)-1 ||
+                 composite_image->getImageIdAt(i, j) == (uint16_t)-2)
                 continue;
-            img = composite_image->get_image_at(i, j);
+            img = composite_image->getImageAt(i, j);
             next_images.push_back(SDLGuimage(width, height, i, j, detail_threshold, local_transition_zoom * calculate_small_x(),
                                               texture_loader, img, renderer, this, stats_counter));
             next_image_exists = true;
@@ -252,12 +252,12 @@ void SDLGuimage::generate_image() {
         int img_w, img_h;
         float difference_x;
         float difference_y;
-        SDL_Texture* image = texture_loader->get_texture(composite_image, composite_image->get_width() * zoom);
+        SDL_Texture* image = texture_loader->get_texture(composite_image, composite_image->getWidth() * zoom);
         SDL_QueryTexture(image, NULL, NULL, &img_w, &img_h);
-        difference_x = (float) img_w / (float) composite_image->get_width();
-        difference_y = (float) img_h / (float) composite_image->get_height();
-        float real_w = std::min((float)composite_image->get_width(), cam_max_x) - std::max(0.0f, cam_min_x);
-        float real_h = std::min((float)composite_image->get_height(), cam_max_y) - std::max(0.0f, cam_min_y);
+        difference_x = (float) img_w / (float) composite_image->getWidth();
+        difference_y = (float) img_h / (float) composite_image->getHeight();
+        float real_w = std::min((float)composite_image->getWidth(), cam_max_x) - std::max(0.0f, cam_min_x);
+        float real_h = std::min((float)composite_image->getHeight(), cam_max_y) - std::max(0.0f, cam_min_y);
 
         SDL_Rect rect{std::max(std::round(-cam_min_x * zoom), 0.0f),
                         std::max(std::round(-cam_min_y * zoom), 0.0f),
@@ -348,7 +348,7 @@ void SDLGuimage::increment_zoom(float zd) {
         }
         return;
     }
-    if (zoom * zd < (local_transition_zoom*calculate_small_x())/composite_image->get_width()) {
+    if (zoom * zd < (local_transition_zoom*calculate_small_x())/composite_image->getWidth()) {
         if (switch_to_parent()) {
             parent->adjust_back_transition(zoom * zd, self_row, self_col, cam_x, cam_y);
         }
@@ -379,11 +379,11 @@ void SDLGuimage::change_zoom(float z) {
 }
 
 int SDLGuimage::get_max_row() {
-    return composite_image->get_mNumHeighteight();
+    return composite_image->getNumHeight();
 }
 
 int SDLGuimage::get_max_col() {
-    return composite_image->get_mNumWidthidth();
+    return composite_image->getNumWidth();
 }
 
 SDLGuimage* SDLGuimage::get_next(int row, int col) {
@@ -413,11 +413,11 @@ float SDLGuimage::get_cam_y() {
     return cam_y;
 }
 
-float SDLGuimage::get_width() {
+float SDLGuimage::getWidth() {
     return width;
 }
 
-float SDLGuimage::get_height() {
+float SDLGuimage::getHeight() {
     return height;
 }
 

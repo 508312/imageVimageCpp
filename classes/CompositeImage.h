@@ -14,76 +14,74 @@ class CompositeImage {
         virtual ~CompositeImage();
 
         /** Returns how much images compose this image horizontally **/
-        int get_mNumWidthidth();
+        int getNumWidth();
         /** Returns how much images compose this image vertically **/
-        int get_mNumHeighteight();
+        int getNumHeight();
 
         /** Returns width resolution at which image was generated **/
-        int get_width();
+        int getWidth();
         /** Returns height resolution at which image was generated **/
-        int get_height();
+        int getHeight();
 
         /** Returns average color of original image. **/
-        color get_avg_color();
+        color getAvgColor();
         /** Returns average color of a crop from original image. **/
-        color crop_avg_color(int left, int top, int width, int height);
+        color getCropAvgColor(int left, int top, int width, int height);
 
         /** Returns image grid of this image **/
-        std::vector<uint16_t>* get_grid();
+        std::vector<uint16_t>* getGrid();
 
         /** Pushes image index to last open space in the grid. **/
-        void push_to_grid(uint16_t image);
+        void pushToGrid(uint16_t image);
 
         /** Gets color distance to another image. **/
-        int get_distance_to_img(CompositeImage* img2);
+        int distanceToImage(CompositeImage* img2);
 
         /** Computes average color of this image. **/
-        void compute_avg();
+        void computeAvgColor();
 
         /** Loads original image to memory. **/
-        void load_to_mem();
+        void loadImageToMemory();
 
         /** Unloads original image from memory. **/
-        void unload_from_mem();
+        void unloadImageFromMemory();
 
-        /** Fills the grid with empty indexes. **/
-        void fill_grid_with_empty();
+        /** Resized grid to width * parts size. **/
+        void resizeGrid();
 
         /** Returns average color of the passed image **/
-        static color image_average(cv::Mat* image);
+        static color imageAvgColor(cv::Mat* image);
 
         /** Gets disatnce between average color of the image and passed color. **/
-        int get_distance_to_color(const color& clr);
+        int distanceToColor(const color& clr);
 
         /** Returns image name **/
-        std::string get_name();
+        std::string getName();
 
-        cv::Mat load_image();
+        cv::Mat loadImage();
 
-        cv::Mat* get_image();
-
-        void set_num_unique_images(int num);
+        cv::Mat* getImage();
 
         /** Returns original extension of the image. **/
-        std::string get_extension();
+        std::string getExtension();
 
         /** Returns pointer to image located at x,y position in the grid. **/
-        CompositeImage* get_image_at(int x, int y);
+        CompositeImage* getImageAt(int x, int y);
 
         /** Returns image index as in ImageBuilder at the given x,y in the grid. **/
-        uint16_t get_image_index_at(int x, int y);
+        uint16_t getImageIdAt(int x, int y);
 
         /** Changes selected image index in the grid. **/
-        void set_image_at(int x, int y, uint16_t image);
+        void setImageAt(int x, int y, uint16_t image);
 
         /** Returns image between two colors. **/
         static int distance(const color& c1, const color& c2);
 
         /** Return image index of this image. **/
-        uint16_t get_ind();
+        uint16_t getId();
 
         /** Coalesces images into blocks. **/
-        void coalesce_blocks(int max_size);
+        void coalesceBlocks(int max_size);
 
     protected:
 
@@ -94,30 +92,28 @@ class CompositeImage {
         uint16_t mNumHeight;
         /** Resolution to load images at. **/
         uint16_t mWidth, mHeight;
-        /** Number of unique images in the grid **/
-        uint16_t num_unique_images = 0;
         /** Index of an image as in ImageBuilder **/
-        uint16_t index;
+        uint16_t mId;
         /** Mapping from indexes of image builder vector to pointers to images **/
         std::vector<CompositeImage*>* ind_img_map;
 
         /** Flag if the original image is loaded in this composite image **/
-        bool is_loaded = false;
+        bool mImgLoaded = false;
 
         /** Average color of this composite image. **/
-        color average;
+        color mAvgColor;
 
         /** Grid of images of which this image consists. **/
-        std::vector<uint16_t> images_grid;
+        std::vector<uint16_t> mGrid;
         /** Name of the image as in file it was loaded from. **/
-        std::string name;
+        std::string mName;
         /** Extension of the image as in file it was loaded from. **/
-        std::string extension;
+        std::string mExtension;
         /** Path to this image. **/
-        std::string path;
+        std::string mPath;
 
         /** Original image is stored here if it is to be loaded. **/
-        cv::Mat stored_image;
+        cv::Mat mStoredImage;
 };
 
 #endif // COMPOSITEIMAGE_H

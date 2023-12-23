@@ -48,9 +48,9 @@ class SDLGuimage
         /** Returns center of camera on the y axis. **/
         float get_cam_y();
         /** Returns width of the window. **/
-        float get_width();
+        float getWidth();
         /** Returns height of the window. **/
-        float get_height();
+        float getHeight();
         /** Returns the row of this image as in its row in parent's grid. **/
         int get_row();
         /** Returns the col of this image as in its col in parent's grid. **/

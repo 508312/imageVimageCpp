@@ -51,17 +51,17 @@ void TextureSetter::set_above_threshold(CompositeImage* image, cv::Mat& pixels) 
 
     set_texture(image, pixels, 0, load_threshold);
 
-    texture_statuses[image->get_ind()] = TEXTURE_LOADED;
+    texture_statuses[image->getId()] = TEXTURE_LOADED;
 }
 
 void TextureSetter::set_below_threshold(CompositeImage* image) {
     cv::Mat pixels;
-    image_builder->create_final(image->get_ind(), pixels);
+    image_builder->create_final(image->getId(), pixels);
     set_below_threshold(image, pixels);
 }
 
 void TextureSetter::set_above_threshold(CompositeImage* image) {
     cv::Mat pixels;
-    image_builder->create_final(image->get_ind(), pixels);
+    image_builder->create_final(image->getId(), pixels);
     set_above_threshold(image, pixels);
 }

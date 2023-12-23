@@ -94,42 +94,42 @@ TexType& TextureLoader<TexType>::get_texture(CompositeImage* image, int width) {
     int del = -1;
 
     if (index <= load_threshold) {
-        //std::cout << "CACHE PUT " << image->get_ind() << std::endl;
-        del = texture_cache.put(image->get_ind());
+        //std::cout << "CACHE PUT " << image->getId() << std::endl;
+        del = texture_cache.put(image->getId());
         //std::cout << "CACHE PUT DONE " << std::endl;
 
 
         //if (del != -1) {
-        //    std::cout << "DEL NOT ZERO " << del << " STATUS " << (int) texture_statuses[image->get_ind()] << std::endl;
+        //    std::cout << "DEL NOT ZERO " << del << " STATUS " << (int) texture_statuses[image->getId()] << std::endl;
         //}
 
-        if (del != -1 && texture_statuses[image->get_ind()] == TEXTURE_LOADED) {
+        if (del != -1 && texture_statuses[image->getId()] == TEXTURE_LOADED) {
             std::cout << "STARTED UNLOADING " << del << std::endl;
-            texture_statuses[image->get_ind()] = TEXTURE_STARTED_UNLOADING;
+            texture_statuses[image->getId()] = TEXTURE_STARTED_UNLOADING;
             std::thread dt([this,del](){free_texture_above_thresh(del);});
             dt.detach();
         }
     }
 
-    if (index <= load_threshold && texture_statuses[image->get_ind()] == TEXTURE_NOT_LOADED) {
-        texture_statuses[image->get_ind()] = TEXTURE_STARTED_LOADING;
+    if (index <= load_threshold && texture_statuses[image->getId()] == TEXTURE_NOT_LOADED) {
+        texture_statuses[image->getId()] = TEXTURE_STARTED_LOADING;
         std::thread ct([this,image](){set_above_threshold(image);});
         ct.detach();
     }
 
-    if (texture_statuses[image->get_ind()] == TEXTURE_LOADED || index >= load_threshold) {
-        return mipmaps[index][image->get_ind()];
+    if (texture_statuses[image->getId()] == TEXTURE_LOADED || index >= load_threshold) {
+        return mipmaps[index][image->getId()];
     }
-    return mipmaps[load_threshold][image->get_ind()];
+    return mipmaps[load_threshold][image->getId()];
 }
 
 template <typename TexType>
 TexType& TextureLoader<TexType>::get_full_texture(CompositeImage* image) {
     int index = 0;
-    while (mipmaps[index][image->get_ind()] == NULL) {
+    while (mipmaps[index][image->getId()] == NULL) {
         index++;
     }
-    return mipmaps[0][image->get_ind()];
+    return mipmaps[0][image->getId()];
 }
 
 template <typename TexType>

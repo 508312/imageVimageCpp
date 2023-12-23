@@ -38,8 +38,8 @@ void ImageSyncer::sync_image(SDLGuimage& img) {
     if (p_anchor_w = 0) {
         p_anchor_x = img.get_cam_x();
         p_anchor_y = img.get_cam_y();
-        p_anchor_w = img.get_width();
-        p_anchor_h = img.get_height();
+        p_anchor_w = img.getWidth();
+        p_anchor_h = img.getHeight();
         p_anchor_row = img.get_row();
         p_anchor_col = img.get_col();
         p_anchor_num_cols = img.get_max_col();
