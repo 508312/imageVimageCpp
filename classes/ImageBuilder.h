@@ -68,6 +68,8 @@ class ImageBuilder {
         /// Memo table for resized images.
         std::vector<cv::Mat> resized_images;
 
+        std::vector<cv::Mat> resized_big;
+
         /// List of all images.
         std::vector<CompositeImage> images;
         /** List of pointers to images.
@@ -78,9 +80,9 @@ class ImageBuilder {
          std::vector<CompositeImage*> pointers_to_images;
 
         /// Number of parts to divide the image on horizontally.
-        int num_parts_w;
+        int mNumWidth;
         /// Number of parts to divide the image on vertically.
-        int num_parts_h;
+        int mNumHeight;
 
         /// Width to resize original images to.
         int width;

@@ -72,7 +72,7 @@ class SDLGuimage
         void set_local_transition_threshold(int thresh);
 
         /** Pans camera towards cursor **/
-        void move_cam_pos_based_on_mouse(int cur_x, int cur_y, float delta_z);
+        void move_cam_pos_based_on_mouse(double cur_x, double cur_y, float delta_z);
 
         /** Calculates width of subdivided image. **/
         float calculate_small_x();

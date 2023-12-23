@@ -147,20 +147,20 @@ int main( int argc, char* args[] ) {
 
 
 void initialize_starting_variables(int argc, char** args, starting_variables& vars) {
-    vars.window_width = 800;
-    vars.window_height = 800;
-    vars.image_width = 800;
-    vars.image_height = 800;
+    vars.window_width = 1600;
+    vars.window_height = 1600;
+    vars.image_width = 1600;
+    vars.image_height = 1600;
     vars.image_number_of_cols = 400;
     vars.image_number_of_rows = 400;
     vars.prune_threshold = 3;
     vars.closeness_threshold = 0;
     vars.compiled_upscale = 1;
-    vars.detailed_image_width = 1000;
-    vars.local_transition_width = 800;
-    vars.resolutions = {700, 400, 200, 100, 50, 25, 10, 5};
+    vars.detailed_image_width = 2000;
+    vars.local_transition_width = 1600;
+    vars.resolutions = {1600, 800, 400, 200, 100, 50, 25, 10, 5};
     vars.render_type = "software";
-    vars.folder = "qats_reduced";
+    vars.folder = "imgsmall";
 
 
     for (int i = 1; i < argc; i++) {

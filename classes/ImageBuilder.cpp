@@ -18,8 +18,8 @@ ImageBuilder::ImageBuilder() {
 
 ImageBuilder::ImageBuilder(int parts_w, int parts_h, int w, int h, int fin_up, int prune,
                             int closeness) {
-    num_parts_w = parts_w;
-    num_parts_h = parts_h;
+    mNumWidth = parts_w;
+    mNumHeight = parts_h;
     width = w;
     height = h;
     final_upscale = fin_up;
@@ -53,11 +53,16 @@ void ImageBuilder::build_images() {
     // EASILY CAN BE MADE SO THAT IT RESIZES ONLY THOSE WHICH IT NEEDS TO(had this b4),
     // but this is just more readable
     fill_table(get_num_images(),
-                calculate_small_dim(width, num_parts_w, final_upscale),
-                calculate_small_dim(height, num_parts_h, final_upscale),
+                calculate_small_dim(width, mNumWidth, final_upscale),
+                calculate_small_dim(height, mNumHeight, final_upscale),
                 final_upscale, resized_images, pointers_to_images);
 
-    //std::for_each(std::execution::par_unseq, indexes.begin(), indexes.end(), [&](int i){ create_final(i);});
+    fill_table(get_num_images(), width/8, height/8, final_upscale, resized_big, pointers_to_images);
+
+    cv::Mat tmp;
+    std::for_each(std::execution::seq, indexes.begin(), indexes.end(), [&](int i){
+                  //images[i].coalesce_blocks(30);
+                  create_final(i, tmp);});
 
 
     /*
@@ -72,8 +77,8 @@ void ImageBuilder::build_images() {
 
 void ImageBuilder::build_image(int ind) {
     int closest = -1;
-    int parts_w = images[ind].get_num_parts_width();
-    int parts_h = images[ind].get_num_parts_height();
+    int parts_w = images[ind].get_mNumWidthidth();
+    int parts_h = images[ind].get_mNumHeighteight();
     color crop_clr;
     int left, top;
     pos p;
@@ -185,8 +190,8 @@ void ImageBuilder::prune(int ind, std::vector<std::vector<pos>> positions,
         if (positions[image].size() == 0) {
             continue;
         }
-        parts_w = images[image].get_num_parts_width();
-        parts_h = images[image].get_num_parts_height();
+        parts_w = images[image].get_mNumWidthidth();
+        parts_h = images[image].get_mNumHeighteight();
         total++;
         amounts[image] = 0;
         for(int k = 0; k < positions[image].size(); k++) {
@@ -208,9 +213,40 @@ void ImageBuilder::create_final(int ind, cv::Mat& concatted_image) {
     std::vector<uint16_t>* grid = images[ind].get_grid();
 
     std::cout << "concat started " << std::endl;
-    concat_all(num_parts_h, num_parts_w, final_upscale, resized_images, grid, concatted_image);
+    concat_all(mNumHeight, mNumWidth, final_upscale, resized_images, grid, concatted_image);
 
-    // cv::imwrite(("folder2\\" + images[ind].get_name() + "_compiled" + images[ind].get_extension()).c_str(), concatted_image);
+    int small_width = calculate_small_dim(width, mNumWidth, final_upscale);
+    int small_height = calculate_small_dim(height, mNumHeight, final_upscale);
+    cv::Mat tmp;
+    cv::Mat destRoi;
+    int li = 0;
+    int lj = 0;
+    Timer t;
+    t.start();
+    for (int i = 0; i < mNumHeight; i++) {
+        for (int j = 0; j < mNumWidth; j++ ) {
+            uint16_t idx = (*grid)[i * mNumWidth + j];
+            if (idx == (uint16_t)-1) {
+                continue;
+            }
+            if (idx == (uint16_t)-2) {
+                uint16_t old_idx = (*grid)[li * mNumWidth + lj];
+                //std::cout << "pasted " << small_width * (j - lj) << " " << small_height * (j - lj) << " to "
+                // << small_width * j << " " << small_height * i << "\n";
+
+                cv::resize(resized_big[old_idx], tmp,
+                    cv::Size(small_width * (j - lj + 1), small_height * (j - lj + 1)), 0, 0);
+
+                destRoi = concatted_image(cv::Rect(small_width * lj, small_height * li, small_width * (j - lj + 1), small_height * (j - lj + 1)));
+                tmp.copyTo(destRoi);
+            }
+            li = i;
+            lj = j;
+        }
+    }
+    std::cout << "TOOOOK " << t.get() << std::endl;
+    //cv::imwrite(("folderCoal\\" + images[ind].get_name() + "_compiled" + images[ind].get_extension()).c_str(), concatted_image);
+
 }
 
 void ImageBuilder::fill_table(int num_images, int small_width, int small_height, float final_upscale,
@@ -249,12 +285,18 @@ void ImageBuilder::concat_all(int rows, int cols, float final_upscale,
                                 std::vector<uint16_t>* grid, cv::Mat& full) {
     cv::Mat* harr = new cv::Mat[cols];
     cv::Mat* varr = new cv::Mat[rows];
+    uint16_t cur_img;
 
     Timer t;
     t.start();
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
             uint16_t img = (*grid)[i * cols + j];
+            if (img == (uint16_t)-1 || img == (uint16_t)-2) {
+                img = cur_img;
+            } else {
+                cur_img = img;
+            }
 
             harr[j] = resized_images[img];
         }
@@ -301,7 +343,7 @@ void ImageBuilder::load_images(std::string path) {
     int ind = 0;
 
     for (const auto & entry : std::filesystem::directory_iterator(path)) {
-        images.push_back(CompositeImage(num_parts_w, num_parts_h, entry.path().string(), width, height, ind, &pointers_to_images));
+        images.push_back(CompositeImage(mNumWidth, mNumHeight, entry.path().string(), width, height, ind, &pointers_to_images));
         ind++;
     }
 

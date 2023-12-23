@@ -14,8 +14,12 @@ StatsCounter::StatsCounter(std::vector<CompositeImage>* images)
 
     std::for_each(std::execution::par_unseq, indexes.begin(), indexes.end(), [&](int i){
                     CompositeImage* img = &((*images)[i]);
-                    for (int j = 0; j < img->get_num_parts_height(); j++) {
-                        for (int k = 0; k < img->get_num_parts_width(); k++) {
+                    for (int j = 0; j < img->get_mNumHeighteight(); j++) {
+                        for (int k = 0; k < img->get_mNumWidthidth(); k++) {
+                            if (img->get_image_index_at(j, k) == (uint16_t)-1 ||
+                                img->get_image_index_at(j, k) == (uint16_t)-2) {
+                                continue;
+                            }
                             unique_images[i].insert(str_index[img->get_image_at(j, k)->get_name()]);
                         }
                     }});

@@ -18,13 +18,13 @@ CompositeImage::CompositeImage(int parts_w, int parts_h, std::string path,
     name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
     extension = path.substr(path.find_last_of("."), path.length() - path.find_last_of("."));
     this->path = path;
-    this->num_parts_w = parts_w;
-    this->num_parts_h = parts_h;
+    this->mNumWidth = parts_w;
+    this->mNumHeight = parts_h;
     ind_img_map = ind_map;
     this->index = index;
 
-    width = w;
-    height = h;
+    mWidth = w;
+    mHeight = h;
 
     //compute_avg();
 }
@@ -34,7 +34,7 @@ CompositeImage::~CompositeImage() {
 }
 
 void CompositeImage::fill_grid_with_empty() {
-    images_grid.resize(num_parts_h*num_parts_w);
+    images_grid.resize(mNumHeight*mNumWidth);
 }
 
 void CompositeImage::unload_from_mem() {
@@ -50,12 +50,12 @@ void CompositeImage::load_to_mem() {
 cv::Mat CompositeImage::load_image() {
     cv::Mat pix = cv::imread(path, cv::IMREAD_COLOR);
     int inter;
-    if (pix.cols < width) {
+    if (pix.cols < mWidth) {
         inter = cv::INTER_CUBIC;
     } else {
         inter = cv::INTER_AREA;
     }
-    cv::resize(pix, pix, cv::Size(width, height), 0, 0, inter);
+    cv::resize(pix, pix, cv::Size(mWidth, mHeight), 0, 0, inter);
     cv::cvtColor(pix, pix, cv::COLOR_BGRA2BGR);
     return pix;
 }
@@ -106,11 +106,11 @@ std::string CompositeImage::get_extension(){
 }
 
 CompositeImage* CompositeImage::get_image_at(int x, int y) {
-    return (*ind_img_map)[images_grid[x * num_parts_w + y]];
+    return (*ind_img_map)[images_grid[x * mNumWidth + y]];
 }
 
 uint16_t CompositeImage::get_image_index_at(int x, int y) {
-    return images_grid[x * num_parts_w + y];
+    return images_grid[x * mNumWidth + y];
 }
 
 color CompositeImage::crop_avg_color(int left, int top, int width, int height) {
@@ -139,7 +139,7 @@ color CompositeImage::crop_avg_color(int left, int top, int width, int height) {
 }
 
 void CompositeImage::set_image_at(int x, int y, uint16_t img) {
-    images_grid[x * num_parts_w + y] = img;
+    images_grid[x * mNumWidth + y] = img;
 }
 
 color CompositeImage::image_average(cv::Mat* image) {
@@ -175,20 +175,20 @@ void CompositeImage::push_to_grid(uint16_t image) {
 void CompositeImage::set_num_unique_images(int num) {
     num_unique_images = num;
 }
-int CompositeImage::get_num_parts_width() {
-    return num_parts_w;
+int CompositeImage::get_mNumWidthidth() {
+    return mNumWidth;
 }
 
-int CompositeImage::get_num_parts_height() {
-    return num_parts_h;
+int CompositeImage::get_mNumHeighteight() {
+    return mNumHeight;
 }
 
 int CompositeImage::get_width() {
-    return width;
+    return mWidth;
 }
 
 int CompositeImage::get_height() {
-    return height;
+    return mHeight;
 }
 
 void CompositeImage::compute_avg() {
@@ -206,3 +206,97 @@ void CompositeImage::compute_avg() {
         unload_from_mem();
     }
 }
+
+void CompositeImage::coalesce_blocks(int max_size) {
+    int ii;
+    int ij;
+    uint16_t start_ind;
+    uint32_t max_i;
+    uint32_t max_j;
+    for (int pi = 0; pi < mNumHeight - 1; pi++) {
+        for (int pj = 0; pj < mNumWidth - 1; pj++) {
+            start_ind = get_image_index_at(pi, pj);
+            if (start_ind == (uint16_t)-1 || start_ind == (uint16_t)-2) {
+                continue;
+            }
+            ii = pi;
+            ij = pj;
+            max_i = UINT32_MAX;
+            max_j = UINT32_MAX;
+            while (true) {
+                ij++;
+
+                if (ij >= max_j) {
+                    ii++;
+                    ij = pj;
+                }
+
+                if (ij >= mNumWidth) {
+                    int diag_i = pi + std::max(ii - pi, ij - pj);
+                    int diag_j = pj + diag_i - pi;
+                    if (diag_i < max_i) {
+                        max_i = diag_i;
+                        max_j = diag_j;
+                    }
+
+                    ii++;
+                    ij = pj;
+                }
+
+                if (ii >= mNumHeight) {
+                    int diag_i = pi + std::max(ii - pi, ij - pj);
+                    int diag_j = pj + diag_i - pi;
+                    if (diag_i < max_i) {
+                        max_i = diag_i;
+                        max_j = diag_j;
+                    }
+                    break;
+                }
+
+                if (ii >= max_i) {
+                    break;
+                }
+
+                if (get_image_index_at(ii, ij) != start_ind) {
+                    int diag_i = pi + std::max(ii - pi, ij - pj);
+                    int diag_j = pj + diag_i - pi;
+                    if (diag_i < max_i) {
+                        max_i = diag_i;
+                        max_j = diag_j;
+                    }
+                }
+            }
+
+            max_i = std::min((uint32_t)pi + max_size, max_i);
+            max_j = std::min((uint32_t)pj + max_size, max_j);
+            if (max_i - pi <= 1) {
+                continue;
+            }
+            //std::cout << "max i j " << max_i << max_j << std::endl;
+            //std::cout << "p i j " << pi << pj << std::endl;
+            //std::cout << "doing last" << std::endl;
+            for (int i = pi; i < max_i; i++) {
+                for (int j = pj; j < max_j; j++) {
+                    if (i == pi && j == pj) {
+                        continue;
+                    }
+                    //if (i == pi + 1 || j == pj + 1) {
+                    //    set_image_at(i, j, -3);
+                    if (i == pi && j == max_j - 1) {
+                        set_image_at(i, j, -2);
+                    } else {
+                        set_image_at(i, j, -1);
+                    }
+                }
+            }
+            //std::cout << "finished last" << std::endl;
+        }
+    }
+}
+
+/*
+AAABAA
+AAAAAA
+ABAAAA
+
+*/

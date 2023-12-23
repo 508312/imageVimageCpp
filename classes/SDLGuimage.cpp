@@ -86,11 +86,11 @@ void SDLGuimage::set_local_transition_threshold(int thresh_width) {
 }
 
 float SDLGuimage::calculate_small_x() {
-    return composite_image->get_width() / (float)composite_image->get_num_parts_width();
+    return composite_image->get_width() / (float)composite_image->get_mNumWidthidth();
 }
 
 float SDLGuimage::calculate_small_y() {
-    return composite_image->get_height() / (float)composite_image->get_num_parts_height();
+    return composite_image->get_height() / (float)composite_image->get_mNumHeighteight();
 }
 
 float SDLGuimage::calculate_warp_scale_x() {
@@ -186,9 +186,9 @@ void SDLGuimage::calculate_bound_indexes(int& min_x_ind, int& min_y_ind, int& ma
     min_y_ind = std::max((int)(cam_min_y/theoretical_y),
                               0);
     max_x_ind = std::min((int)std::ceil(cam_max_x/theoretical_x),
-                              composite_image->get_num_parts_width());
+                              composite_image->get_mNumWidthidth());
     max_y_ind = std::min((int)std::ceil(cam_max_y/theoretical_y),
-                              composite_image->get_num_parts_height());
+                              composite_image->get_mNumHeighteight());
 }
 
 void SDLGuimage::add_next_images() {
@@ -209,6 +209,9 @@ void SDLGuimage::add_next_images(int min_x_ind, int min_y_ind, int max_x_ind, in
     for (int i = min_y_ind; i < max_y_ind; i++) {
         for (int j = min_x_ind; j < max_x_ind; j++) {
             std::cout << "ADDING " << i << " " << j << std::endl;
+            if (composite_image->get_image_index_at(i, j) == (uint16_t)-1 ||
+                 composite_image->get_image_index_at(i, j) == (uint16_t)-2)
+                continue;
             img = composite_image->get_image_at(i, j);
             next_images.push_back(SDLGuimage(width, height, i, j, detail_threshold, local_transition_zoom * calculate_small_x(),
                                               texture_loader, img, renderer, this, stats_counter));
@@ -304,7 +307,7 @@ void SDLGuimage::update_cam_bounds(){
 }
 
 /** Moves camera based on position of cursor, as if on canvas. **/
-void SDLGuimage::move_cam_pos_based_on_mouse(int cur_x, int cur_y, float delta_z) {
+void SDLGuimage::move_cam_pos_based_on_mouse(double cur_x, double cur_y, float delta_z) {
     if (next_image_exists){
         for (int i = 0; i < next_images.size(); i++)
             next_images[i].move_cam_pos_based_on_mouse(cur_x, cur_y, delta_z);
@@ -376,11 +379,11 @@ void SDLGuimage::change_zoom(float z) {
 }
 
 int SDLGuimage::get_max_row() {
-    return composite_image->get_num_parts_height();
+    return composite_image->get_mNumHeighteight();
 }
 
 int SDLGuimage::get_max_col() {
-    return composite_image->get_num_parts_width();
+    return composite_image->get_mNumWidthidth();
 }
 
 SDLGuimage* SDLGuimage::get_next(int row, int col) {

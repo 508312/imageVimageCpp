@@ -14,9 +14,9 @@ class CompositeImage {
         virtual ~CompositeImage();
 
         /** Returns how much images compose this image horizontally **/
-        int get_num_parts_width();
+        int get_mNumWidthidth();
         /** Returns how much images compose this image vertically **/
-        int get_num_parts_height();
+        int get_mNumHeighteight();
 
         /** Returns width resolution at which image was generated **/
         int get_width();
@@ -82,15 +82,18 @@ class CompositeImage {
         /** Return image index of this image. **/
         uint16_t get_ind();
 
+        /** Coalesces images into blocks. **/
+        void coalesce_blocks(int max_size);
+
     protected:
 
     private:
         /** Number of parts to divide the image horizontally. **/
-        uint16_t num_parts_w;
+        uint16_t mNumWidth;
         /** Number of parts to divide the image vertically. **/
-        uint16_t num_parts_h;
+        uint16_t mNumHeight;
         /** Resolution to load images at. **/
-        uint16_t width, height;
+        uint16_t mWidth, mHeight;
         /** Number of unique images in the grid **/
         uint16_t num_unique_images = 0;
         /** Index of an image as in ImageBuilder **/
