@@ -22,32 +22,32 @@ class ImageBuilder {
         virtual ~ImageBuilder();
 
         /** Loads images from specified path. **/
-        void load_images(std::string path);
+        void loadImages(std::string path);
 
         /** Subdivides all images. **/
-        void build_images();
+        void buildImages();
 
         /** Creates image from subdivided grid and outputs result in concatted_image. **/
-        void create_final(int ind, cv::Mat& concatted_image);
+        void createFinal(int ind, cv::Mat& concatted_image);
 
         /** Returns number of images. **/
-        int get_num_images();
+        int getNumImages();
 
         /** Calculates the size of a small image. **/
-        static int calculate_small_dim(int dim, int parts, float upscale);
+        static int calculateSmallDim(int dim, int parts, float upscale);
 
         /** Concats the grid using resized_images as the memo table. Outputs result in @full **/
-        static void concat_all(int rows, int cols, float final_upscale,
+        static void concatAll(int rows, int cols, float final_upscale,
                                 std::vector<cv::Mat>& resized_images,
                                 std::vector<uint16_t>* grid, cv::Mat& full);
 
         /** Returns vector with original images. **/
-        std::vector<CompositeImage>* get_images();
+        std::vector<CompositeImage>* getImages();
         /** Returns vector of pointers to images. **/
-        std::vector<CompositeImage*>& get_pointers_to_images();
+        std::vector<CompositeImage*>& getPointersToImages();
 
         /** Fills memo table resized_images. **/
-        static void fill_table(int num_images, int small_width, int small_height, float final_upscale,
+        static void fillTable(int num_images, int small_width, int small_height, float final_upscale,
                                 std::vector<cv::Mat>& resized_images,
                                 std::vector<CompositeImage*>& images_to_resize);
 
@@ -62,13 +62,13 @@ class ImageBuilder {
         /** Finds closest image to specified clr. Can ignore image under ind.
         *  TODO: refactor, make ind a set probably, make the Included_images vector or smth like that.
         */
-        static int find_closest_image(int ind, color& clr, std::vector<CompositeImage*>* imgs);
-        void build_image(int ind);
+        static int findClosestImage(int ind, color& clr, std::vector<CompositeImage*>* imgs);
+        void buildImage(int ind);
 
         /// Memo table for resized images.
-        std::vector<cv::Mat> resized_images;
+        std::vector<cv::Mat> mResizedImages;
 
-        std::vector<cv::Mat> resized_big;
+        std::vector<cv::Mat> mResizedBig;
 
         /// List of all images.
         std::vector<CompositeImage> images;
@@ -77,7 +77,7 @@ class ImageBuilder {
          *  One problem may arise from original list being resized due to adding new image,
          *  This should be taken in account when scaling function to support compiling on the fly images.
          */
-         std::vector<CompositeImage*> pointers_to_images;
+         std::vector<CompositeImage*> mPointersToImages;
 
         /// Number of parts to divide the image on horizontally.
         int mNumWidth;
@@ -85,23 +85,23 @@ class ImageBuilder {
         int mNumHeight;
 
         /// Width to resize original images to.
-        int width;
+        int mWidth;
         /// Height to resize original images to.
-        int height;
+        int mHeight;
 
         /// By how much to upscale @width and @height in the compiled image.
-        float final_upscale;
+        float mFinalUpscale;
 
         /** Replace images whose amount is less than this threshold.
             With a value of 10 image still looks good, and quite fast.
         */
-        int prune_threshold = 0;
+        int mPruneThreshold = 0;
 
         /** Threshold below which to just take previous image when compiling composition.
             Good value to use is 1. 2 is acceptable.
             For 4 the artifacts are visible and not worth the speedup.
          */
-        int closeness_threshold = 0;
+        int mClosenessThreshold = 0;
 };
 
 #endif // IMAGEBUILDER_H

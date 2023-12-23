@@ -61,17 +61,17 @@ int main( int argc, char* args[] ) {
 
     ImageBuilder builder(starting_vars.image_number_of_cols, starting_vars.image_number_of_rows, starting_vars.image_width, starting_vars.image_height,
                         starting_vars.compiled_upscale, starting_vars.prune_threshold, starting_vars.closeness_threshold);
-    builder.load_images(starting_vars.folder);
+    builder.loadImages(starting_vars.folder);
 
     t1.start();
-    builder.build_images();
+    builder.buildImages();
     SDLTextureLoader test_loader(&builder, starting_vars.resolutions, renderer, 2);
-    std::vector<CompositeImage*> ptrs_to_imgs = builder.get_pointers_to_images();
+    std::vector<CompositeImage*> ptrs_to_imgs = builder.getPointersToImages();
     test_loader.load_set(ptrs_to_imgs);
 
     std::cout << "whole process " << t1.get() << std::endl;
 
-    std::vector<CompositeImage>* images = builder.get_images();
+    std::vector<CompositeImage>* images = builder.getImages();
 
     t1.start();
     StatsCounter stats_counter(images);

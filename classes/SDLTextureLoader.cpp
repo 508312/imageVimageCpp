@@ -64,7 +64,7 @@ void SDLTextureLoader::load_set(std::vector<CompositeImage*>& images) {
 
     std::for_each(std::execution::par_unseq, indexes.begin(), indexes.end(), [&](int i){
                                 cv::Mat full;
-                                image_builder->create_final(images[i]->getId(), full);
+                                image_builder->createFinal(images[i]->getId(), full);
                                 set_below_threshold(images[i], full); });
 }
 

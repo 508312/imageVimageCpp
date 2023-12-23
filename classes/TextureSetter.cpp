@@ -56,12 +56,12 @@ void TextureSetter::set_above_threshold(CompositeImage* image, cv::Mat& pixels) 
 
 void TextureSetter::set_below_threshold(CompositeImage* image) {
     cv::Mat pixels;
-    image_builder->create_final(image->getId(), pixels);
+    image_builder->createFinal(image->getId(), pixels);
     set_below_threshold(image, pixels);
 }
 
 void TextureSetter::set_above_threshold(CompositeImage* image) {
     cv::Mat pixels;
-    image_builder->create_final(image->getId(), pixels);
+    image_builder->createFinal(image->getId(), pixels);
     set_above_threshold(image, pixels);
 }
