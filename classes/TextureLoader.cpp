@@ -10,7 +10,7 @@
 
 template <typename TexType>
 TextureLoader<TexType>::TextureLoader(ImageBuilder* img_bldr) : TextureSetter(img_bldr) {
-    mipmaps.push_back(std::vector<TexType>{});
+    mMipmaps.push_back(std::vector<TexType>{});
 }
 
 template <typename TexType>
@@ -18,12 +18,12 @@ TextureLoader<TexType>::~TextureLoader() {
 }
 
 template <typename TexType>
-void TextureLoader<TexType>::free_textures() {
+void TextureLoader<TexType>::freeTextures() {
     int amnt = 0;
 
-    for (int i = 0; i < resolutions.size(); i++) {
-        for(int j = 0; j < mipmaps[i].size(); j++) {
-            free_texture(i, j);
+    for (int i = 0; i < mResolution.size(); i++) {
+        for(int j = 0; j < mMipmaps[i].size(); j++) {
+            freeTexture(i, j);
             amnt++;
         }
     }
@@ -37,9 +37,9 @@ TextureLoader<TexType>::TextureLoader(ImageBuilder* img_bldr, std::initializer_l
 
 template <typename TexType>
 TextureLoader<TexType>::TextureLoader(ImageBuilder* img_bldr, std::initializer_list<int> resoluts,
-                                int load_threshold) : TextureSetter(img_bldr, resoluts, load_threshold) {
+                                int mLoadThreshold) : TextureSetter(img_bldr, resoluts, mLoadThreshold) {
     for (int res : resoluts) {
-        mipmaps.push_back(std::vector<TexType>{});
+        mMipmaps.push_back(std::vector<TexType>{});
     }
 }
 
@@ -50,38 +50,38 @@ TextureLoader<TexType>::TextureLoader(ImageBuilder* img_bldr, std::vector<int>& 
 
 template <typename TexType>
 TextureLoader<TexType>::TextureLoader(ImageBuilder* img_bldr, std::vector<int>& resoluts,
-                            int load_threshold) : TextureSetter(img_bldr, resoluts, load_threshold) {
+                            int mLoadThreshold) : TextureSetter(img_bldr, resoluts, mLoadThreshold) {
     for (int res : resoluts) {
-        mipmaps.push_back(std::vector<TexType>{});
+        mMipmaps.push_back(std::vector<TexType>{});
     }
 }
 
 template <typename TexType>
-void TextureLoader<TexType>::resize_to(int amnt) {
-    for (int i = texture_statuses.size(); i < amnt; i++) {
-        texture_statuses.push_back(TEXTURE_NOT_LOADED);
+void TextureLoader<TexType>::resizeTo(int amnt) {
+    for (int i = mTextureStatuses.size(); i < amnt; i++) {
+        mTextureStatuses.push_back(TEXTURE_NOT_LOADED);
     }
-    for (int i = 0; i < mipmaps.size(); i++) {
-        mipmaps[i].resize(amnt);
+    for (int i = 0; i < mMipmaps.size(); i++) {
+        mMipmaps[i].resize(amnt);
     }
 }
 
 template <typename TexType>
-int TextureLoader<TexType>::find_closest_res(int width) {
+int TextureLoader<TexType>::findClosestRes(int width) {
 
     int best = 99999;
     int best_ind = -1;
-    for (int i = 0; i < resolutions.size(); i++) {
-        if (abs(width - resolutions[i]) < best) {
-            best = abs(width - resolutions[i]);
+    for (int i = 0; i < mResolution.size(); i++) {
+        if (abs(width - mResolution[i]) < best) {
+            best = abs(width - mResolution[i]);
             best_ind = i;
         }
     }
     return best_ind;
 
     /*
-    int best_ind = resolutions.size() - 1;
-    while (width > resolutions[best_ind - 1] && best_ind > 0) {
+    int best_ind = mResolution.size() - 1;
+    while (width > mResolution[best_ind - 1] && best_ind > 0) {
         best_ind--;
     }
     return best_ind;
@@ -89,54 +89,54 @@ int TextureLoader<TexType>::find_closest_res(int width) {
 }
 
 template <typename TexType>
-TexType& TextureLoader<TexType>::get_texture(CompositeImage* image, int width) {
-    int index = find_closest_res(width);
+TexType& TextureLoader<TexType>::getTexture(CompositeImage* image, int width) {
+    int index = findClosestRes(width);
     int del = -1;
 
-    if (index <= load_threshold) {
+    if (index <= mLoadThreshold) {
         //std::cout << "CACHE PUT " << image->getId() << std::endl;
-        del = texture_cache.put(image->getId());
+        del = mTextureCache.put(image->getId());
         //std::cout << "CACHE PUT DONE " << std::endl;
 
 
         //if (del != -1) {
-        //    std::cout << "DEL NOT ZERO " << del << " STATUS " << (int) texture_statuses[image->getId()] << std::endl;
+        //    std::cout << "DEL NOT ZERO " << del << " STATUS " << (int) mTextureStatuses[image->getId()] << std::endl;
         //}
 
-        if (del != -1 && texture_statuses[image->getId()] == TEXTURE_LOADED) {
+        if (del != -1 && mTextureStatuses[image->getId()] == TEXTURE_LOADED) {
             std::cout << "STARTED UNLOADING " << del << std::endl;
-            texture_statuses[image->getId()] = TEXTURE_STARTED_UNLOADING;
-            std::thread dt([this,del](){free_texture_above_thresh(del);});
+            mTextureStatuses[image->getId()] = TEXTURE_STARTED_UNLOADING;
+            std::thread dt([this,del](){freeTextureAboveThreshold(del);});
             dt.detach();
         }
     }
 
-    if (index <= load_threshold && texture_statuses[image->getId()] == TEXTURE_NOT_LOADED) {
-        texture_statuses[image->getId()] = TEXTURE_STARTED_LOADING;
-        std::thread ct([this,image](){set_above_threshold(image);});
+    if (index <= mLoadThreshold && mTextureStatuses[image->getId()] == TEXTURE_NOT_LOADED) {
+        mTextureStatuses[image->getId()] = TEXTURE_STARTED_LOADING;
+        std::thread ct([this,image](){setAboveThreshold(image);});
         ct.detach();
     }
 
-    if (texture_statuses[image->getId()] == TEXTURE_LOADED || index >= load_threshold) {
-        return mipmaps[index][image->getId()];
+    if (mTextureStatuses[image->getId()] == TEXTURE_LOADED || index >= mLoadThreshold) {
+        return mMipmaps[index][image->getId()];
     }
-    return mipmaps[load_threshold][image->getId()];
+    return mMipmaps[mLoadThreshold][image->getId()];
 }
 
 template <typename TexType>
-TexType& TextureLoader<TexType>::get_full_texture(CompositeImage* image) {
+TexType& TextureLoader<TexType>::getFullTexture(CompositeImage* image) {
     int index = 0;
-    while (mipmaps[index][image->getId()] == NULL) {
+    while (mMipmaps[index][image->getId()] == NULL) {
         index++;
     }
-    return mipmaps[0][image->getId()];
+    return mMipmaps[0][image->getId()];
 }
 
 template <typename TexType>
-void TextureLoader<TexType>::free_texture_above_thresh(int img_index) {
-    for (int i = 0; i < load_threshold; i++) {
-        free_texture(i, img_index);
+void TextureLoader<TexType>::freeTextureAboveThreshold(int img_index) {
+    for (int i = 0; i < mLoadThreshold; i++) {
+        freeTexture(i, img_index);
     }
     std::cout << "UNLOADING SUCCESSFULL " << img_index << std::endl;
-    texture_statuses[img_index] == TEXTURE_NOT_LOADED;
+    mTextureStatuses[img_index] == TEXTURE_NOT_LOADED;
 }

@@ -67,7 +67,7 @@ int main( int argc, char* args[] ) {
     builder.buildImages();
     SDLTextureLoader test_loader(&builder, starting_vars.resolutions, renderer, 2);
     std::vector<CompositeImage*> ptrs_to_imgs = builder.getPointersToImages();
-    test_loader.load_set(ptrs_to_imgs);
+    test_loader.loadSet(ptrs_to_imgs);
 
     std::cout << "whole process " << t1.get() << std::endl;
 
@@ -137,7 +137,7 @@ int main( int argc, char* args[] ) {
         SDL_RenderPresent(renderer);
         SDL_Delay(0);
     }
-    //test_loader.free_textures();
+    //test_loader.freeTextures();
     std::cout << "here" << std::endl;
     closeSDL(&window, &renderer, &screen_surface);
     std::cout << "here2" << std::endl;

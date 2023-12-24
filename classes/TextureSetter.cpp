@@ -2,9 +2,9 @@
 #include <iostream>
 
 TextureSetter::TextureSetter(ImageBuilder* img_bldr) {
-    resolutions.push_back(1600);
-    load_threshold = 0;
-    this->image_builder = img_bldr;
+    mResolution.push_back(1600);
+    mLoadThreshold = 0;
+    this->mImageBuilder = img_bldr;
 }
 
 TextureSetter::TextureSetter(ImageBuilder* img_bldr, std::initializer_list<int> resoluts)
@@ -12,12 +12,12 @@ TextureSetter::TextureSetter(ImageBuilder* img_bldr, std::initializer_list<int> 
 }
 
 TextureSetter::TextureSetter(ImageBuilder* img_bldr, std::initializer_list<int> resoluts,
-                              int load_threshold) {
+                              int mLoadThreshold) {
     for (int res : resoluts) {
-        resolutions.push_back(res);
+        mResolution.push_back(res);
     }
-    this->load_threshold = load_threshold;
-    image_builder = img_bldr;
+    this->mLoadThreshold = mLoadThreshold;
+    mImageBuilder = img_bldr;
 }
 
 TextureSetter::TextureSetter(ImageBuilder* img_bldr, std::vector<int>& resoluts)
@@ -26,12 +26,12 @@ TextureSetter::TextureSetter(ImageBuilder* img_bldr, std::vector<int>& resoluts)
 }
 
 TextureSetter::TextureSetter(ImageBuilder* img_bldr, std::vector<int>& resoluts,
-                              int load_threshold) {
+                              int mLoadThreshold) {
     for (int res : resoluts) {
-        resolutions.push_back(res);
+        mResolution.push_back(res);
     }
-    this->load_threshold = load_threshold;
-    image_builder = img_bldr;
+    this->mLoadThreshold = mLoadThreshold;
+    mImageBuilder = img_bldr;
 }
 
 TextureSetter::~TextureSetter()
@@ -40,28 +40,28 @@ TextureSetter::~TextureSetter()
 }
 
 
-void TextureSetter::set_below_threshold(CompositeImage* image, cv::Mat& pixels) {
-    set_texture(image, pixels, load_threshold, resolutions.size());
+void TextureSetter::setBelowThreshold(CompositeImage* image, cv::Mat& pixels) {
+    setTexture(image, pixels, mLoadThreshold, mResolution.size());
 }
 
-void TextureSetter::set_above_threshold(CompositeImage* image, cv::Mat& pixels) {
-    if (load_threshold <= 0) {
+void TextureSetter::setAboveThreshold(CompositeImage* image, cv::Mat& pixels) {
+    if (mLoadThreshold <= 0) {
         return;
     }
 
-    set_texture(image, pixels, 0, load_threshold);
+    setTexture(image, pixels, 0, mLoadThreshold);
 
-    texture_statuses[image->getId()] = TEXTURE_LOADED;
+    mTextureStatuses[image->getId()] = TEXTURE_LOADED;
 }
 
-void TextureSetter::set_below_threshold(CompositeImage* image) {
+void TextureSetter::setBelowThreshold(CompositeImage* image) {
     cv::Mat pixels;
-    image_builder->createFinal(image->getId(), pixels);
-    set_below_threshold(image, pixels);
+    mImageBuilder->createFinal(image->getId(), pixels);
+    setBelowThreshold(image, pixels);
 }
 
-void TextureSetter::set_above_threshold(CompositeImage* image) {
+void TextureSetter::setAboveThreshold(CompositeImage* image) {
     cv::Mat pixels;
-    image_builder->createFinal(image->getId(), pixels);
-    set_above_threshold(image, pixels);
+    mImageBuilder->createFinal(image->getId(), pixels);
+    setAboveThreshold(image, pixels);
 }

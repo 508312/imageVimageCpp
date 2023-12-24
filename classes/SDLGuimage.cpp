@@ -145,7 +145,7 @@ void SDLGuimage::createDetailed() {
 
             img = mCompositeImage->getImageAt(i, j);
             //t.start();
-            tex = mTextureLoader->get_texture(img, theoretical_x*mZoom);
+            tex = mTextureLoader->getTexture(img, theoretical_x*mZoom);
             //sum += t.get();
 
             SDL_QueryTexture(tex, NULL, NULL, &tex_w, &tex_h);
@@ -252,7 +252,7 @@ void SDLGuimage::generateImage() {
         int img_w, img_h;
         float difference_x;
         float difference_y;
-        SDL_Texture* image = mTextureLoader->get_texture(mCompositeImage, mCompositeImage->getWidth() * mZoom);
+        SDL_Texture* image = mTextureLoader->getTexture(mCompositeImage, mCompositeImage->getWidth() * mZoom);
         SDL_QueryTexture(image, NULL, NULL, &img_w, &img_h);
         difference_x = (float) img_w / (float) mCompositeImage->getWidth();
         difference_y = (float) img_h / (float) mCompositeImage->getHeight();
