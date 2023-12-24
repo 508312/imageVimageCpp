@@ -12,12 +12,12 @@ int calculate_difference(int from, int to, int bound) {
 
 ImageSyncer::ImageSyncer()
 {
-    p_anchor_x = 0;
-    p_anchor_y = 0;
-    p_anchor_w = 0;
-    p_anchor_h = 0;
-    p_anchor_row = -1;
-    p_anchor_col = -1;
+    mAnchorX = 0;
+    mAnchorY = 0;
+    mAnchorW = 0;
+    mAnchorH = 0;
+    mAnchorRow = -1;
+    mAnchorCol = -1;
 }
 
 ImageSyncer::~ImageSyncer()
@@ -26,26 +26,26 @@ ImageSyncer::~ImageSyncer()
 }
 
 void ImageSyncer::reset() {
-    p_anchor_x = 0;
-    p_anchor_y = 0;
-    p_anchor_w = 0;
-    p_anchor_h = 0;
-    p_anchor_row = -1;
-    p_anchor_col = -1;
+    mAnchorX = 0;
+    mAnchorY = 0;
+    mAnchorW = 0;
+    mAnchorH = 0;
+    mAnchorRow = -1;
+    mAnchorCol = -1;
 }
 
-void ImageSyncer::sync_image(SDLGuimage& img) {
-    if (p_anchor_w = 0) {
-        p_anchor_x = img.get_cam_x();
-        p_anchor_y = img.get_cam_y();
-        p_anchor_w = img.getWidth();
-        p_anchor_h = img.getHeight();
-        p_anchor_row = img.get_row();
-        p_anchor_col = img.get_col();
-        p_anchor_num_cols = img.get_max_col();
-        p_anchor_num_rows = img.get_max_row();
+void ImageSyncer::syncImage(SDLGuimage& img) {
+    if (mAnchorW = 0) {
+        mAnchorX = img.get_cam_x();
+        mAnchorY = img.get_cam_y();
+        mAnchorW = img.getWidth();
+        mAnchorH = img.getHeight();
+        mAnchorRow = img.get_row();
+        mAnchorCol = img.get_col();
+        mAnchorNumCols = img.get_max_col();
+        mAnchorNumRows = img.get_max_row();
     } else {
-        //img.change_cam_pos(p_anchor_x + p_anchor_w * calculate_difference(p_anchor_col, img->get_col()),
-        //                    p_anchor_y + p_anchor_h * calculate_difference(p_anchor_row, img->get_row());
+        //img.change_cam_pos(mAnchorX + mAnchorW * calculate_difference(mAnchorCol, img->get_col()),
+        //                    mAnchorY + mAnchorH * calculate_difference(mAnchorRow, img->get_row());
     }
 }

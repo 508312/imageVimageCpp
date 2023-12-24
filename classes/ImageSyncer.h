@@ -17,27 +17,27 @@ class ImageSyncer
         void reset();
 
         /** Syncs image to the anchor image. First image passed after reset becomes anchor image. */
-        void sync_image(SDLGuimage& img);
+        void syncImage(SDLGuimage& img);
 
     protected:
 
     private:
         /** Anchor image x pos. **/
-        int p_anchor_x;
+        int mAnchorX;
         /** Anchor image y pos. **/
-        int p_anchor_y;
+        int mAnchorY;
         /** Anchor image width. 0 value indicates image has been reset. **/
-        int p_anchor_w;
+        int mAnchorW;
         /** Anchor image height. 0 value indicates image has been reset. **/
-        int p_anchor_h;
+        int mAnchorH;
         /** Anchor image row. -1 value indicates image has been reset. **/
-        int p_anchor_row;
+        int mAnchorRow;
         /** Anchor image col. -1 value indicates image has been reset. **/
-        int p_anchor_col;
+        int mAnchorCol;
         /** Num columns in anchor. -1 value indicates image has been reset. **/
-        int p_anchor_num_cols;
+        int mAnchorNumCols;
         /** Num columns in rows. -1 value indicates image has been reset. **/
-        int p_anchor_num_rows;
+        int mAnchorNumRows;
 };
 
 #endif // IMAGESYNCER_H
