@@ -9,7 +9,10 @@
 #define CID_BORDER (cid)-2
 #define CID_TOP_CORNER (cid)-3
 
-/** Composite image indentifier. **/
+// Lowest reserved index of cids.
+#define CID_RESERVED (cid)-3
+
+/** Composite image identifier. **/
 typedef uint16_t cid;
 
 class CompositeImage {

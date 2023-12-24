@@ -214,7 +214,7 @@ void CompositeImage::coalesceBlocks(int max_size) {
     for (int pi = 0; pi < mNumHeight - 1; pi++) {
         for (int pj = 0; pj < mNumWidth - 1; pj++) {
             start_ind = getImageIdAt(pi, pj);
-            if (start_ind == (cid)-1 || start_ind == (cid)-2) {
+            if (start_ind >= CID_RESERVED) {
                 continue;
             }
             ii = pi;
@@ -281,9 +281,9 @@ void CompositeImage::coalesceBlocks(int max_size) {
                     //if (i == pi + 1 || j == pj + 1) {
                     //    setImageAt(i, j, -3);
                     if (i == pi && j == max_j - 1) {
-                        setImageAt(i, j, -2);
+                        setImageAt(i, j, CID_TOP_CORNER);
                     } else {
-                        setImageAt(i, j, -1);
+                        setImageAt(i, j, CID_BODY);
                     }
                 }
             }

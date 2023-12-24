@@ -209,8 +209,7 @@ void SDLGuimage::addNextImages(int min_x_ind, int min_y_ind, int max_x_ind, int 
     for (int i = min_y_ind; i < max_y_ind; i++) {
         for (int j = min_x_ind; j < max_x_ind; j++) {
             std::cout << "ADDING " << i << " " << j << std::endl;
-            if (mCompositeImage->getImageIdAt(i, j) == (uint16_t)-1 ||
-                 mCompositeImage->getImageIdAt(i, j) == (uint16_t)-2)
+            if (mCompositeImage->getImageIdAt(i, j) >= CID_RESERVED)
                 continue;
             img = mCompositeImage->getImageAt(i, j);
             mNextImages.push_back(SDLGuimage(mWidth, mHeight, i, j, mDetailThreshold, mLocalTransitionZoom * calculateSmallX(),

@@ -16,8 +16,7 @@ StatsCounter::StatsCounter(std::vector<CompositeImage>* images)
                     CompositeImage* img = &((*images)[i]);
                     for (int j = 0; j < img->getNumHeight(); j++) {
                         for (int k = 0; k < img->getNumWidth(); k++) {
-                            if (img->getImageIdAt(j, k) == (uint16_t)-1 ||
-                                img->getImageIdAt(j, k) == (uint16_t)-2) {
+                            if (img->getImageIdAt(j, k) >= CID_RESERVED) {
                                 continue;
                             }
                             mUniqueImages[i].insert(mStrIndex[img->getImageAt(j, k)->getName()]);

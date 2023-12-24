@@ -61,7 +61,7 @@ void ImageBuilder::buildImages() {
 
     cv::Mat tmp;
     std::for_each(std::execution::seq, indexes.begin(), indexes.end(), [&](int i){
-                  //images[i].coalesceBlocks(30);
+                  //images[i].coalesceBlocks(3000);
                   createFinal(i, tmp);});
 
 
@@ -226,10 +226,10 @@ void ImageBuilder::createFinal(int ind, cv::Mat& concatted_image) {
     for (int i = 0; i < mNumHeight; i++) {
         for (int j = 0; j < mNumWidth; j++ ) {
             cid idx = (*grid)[i * mNumWidth + j];
-            if (idx == (uint16_t)-1) {
+            if (idx == CID_BODY) {
                 continue;
             }
-            if (idx == (uint16_t)-2) {
+            if (idx == CID_TOP_CORNER) {
                 cid old_idx = (*grid)[li * mNumWidth + lj];
                 //std::cout << "pasted " << small_width * (j - lj) << " " << small_height * (j - lj) << " to "
                 // << small_width * j << " " << small_height * i << "\n";
@@ -292,7 +292,7 @@ void ImageBuilder::concatAll(int rows, int cols, float mFinalUpscale,
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
             cid img = (*grid)[i * cols + j];
-            if (img == (uint16_t)-1 || img == (uint16_t)-2) {
+            if (img >= CID_RESERVED) {
                 img = cur_img;
             } else {
                 cur_img = img;
