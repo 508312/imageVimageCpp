@@ -39,7 +39,7 @@ class ImageBuilder {
         /** Concats the grid using resized_images as the memo table. Outputs result in @full **/
         static void concatAll(int rows, int cols, float final_upscale,
                                 std::vector<cv::Mat>& resized_images,
-                                std::vector<uint16_t>* grid, cv::Mat& full);
+                                std::vector<cid>* grid, cv::Mat& full);
 
         /** Returns vector with original images. **/
         std::vector<CompositeImage>* getImages();

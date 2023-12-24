@@ -5,11 +5,18 @@
 #include <color.h>
 #include <opencv2/core/core.hpp>
 
+#define CID_BODY (cid)-1
+#define CID_BORDER (cid)-2
+#define CID_TOP_CORNER (cid)-3
+
+/** Composite image indentifier. **/
+typedef uint16_t cid;
+
 class CompositeImage {
     public:
 
         CompositeImage(int parts_w, int parts_h, std::string path,
-                        int w, int h, uint16_t index, std::vector<CompositeImage*>* ind_maps);
+                        int w, int h, cid index, std::vector<CompositeImage*>* ind_maps);
 
         virtual ~CompositeImage();
 
@@ -29,10 +36,10 @@ class CompositeImage {
         color getCropAvgColor(int left, int top, int width, int height);
 
         /** Returns image grid of this image **/
-        std::vector<uint16_t>* getGrid();
+        std::vector<cid>* getGrid();
 
         /** Pushes image index to last open space in the grid. **/
-        void pushToGrid(uint16_t image);
+        void pushToGrid(cid image);
 
         /** Gets color distance to another image. **/
         int distanceToImage(CompositeImage* img2);
@@ -69,16 +76,16 @@ class CompositeImage {
         CompositeImage* getImageAt(int x, int y);
 
         /** Returns image index as in ImageBuilder at the given x,y in the grid. **/
-        uint16_t getImageIdAt(int x, int y);
+        cid getImageIdAt(int x, int y);
 
         /** Changes selected image index in the grid. **/
-        void setImageAt(int x, int y, uint16_t image);
+        void setImageAt(int x, int y, cid image);
 
         /** Returns image between two colors. **/
         static int distance(const color& c1, const color& c2);
 
         /** Return image index of this image. **/
-        uint16_t getId();
+        cid getId();
 
         /** Coalesces images into blocks. **/
         void coalesceBlocks(int max_size);
@@ -93,7 +100,7 @@ class CompositeImage {
         /** Resolution to load images at. **/
         uint16_t mWidth, mHeight;
         /** Index of an image as in ImageBuilder **/
-        uint16_t mId;
+        cid mId;
         /** Mapping from indexes of image builder vector to pointers to images **/
         std::vector<CompositeImage*>* ind_img_map;
 
@@ -104,7 +111,7 @@ class CompositeImage {
         color mAvgColor;
 
         /** Grid of images of which this image consists. **/
-        std::vector<uint16_t> mGrid;
+        std::vector<cid> mGrid;
         /** Name of the image as in file it was loaded from. **/
         std::string mName;
         /** Extension of the image as in file it was loaded from. **/

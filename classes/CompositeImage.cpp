@@ -13,7 +13,7 @@
 #include <functional>
 #include <unordered_map>
 CompositeImage::CompositeImage(int parts_w, int parts_h, std::string path,
-                                int w, int h, uint16_t index,  std::vector<CompositeImage*>* ind_map) {
+                                int w, int h, cid index,  std::vector<CompositeImage*>* ind_map) {
     //std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
     mName = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
     mExtension = path.substr(path.find_last_of("."), path.length() - path.find_last_of("."));
@@ -65,7 +65,7 @@ std::string CompositeImage::getName() {
     return mName;
 }
 
-uint16_t CompositeImage::getId() {
+cid CompositeImage::getId() {
     return mId;
 }
 
@@ -77,7 +77,7 @@ cv::Mat* CompositeImage::getImage() {
     }
 }
 
-std::vector<uint16_t>* CompositeImage::getGrid() {
+std::vector<cid>* CompositeImage::getGrid() {
     return &mGrid;
 }
 
@@ -110,7 +110,7 @@ CompositeImage* CompositeImage::getImageAt(int x, int y) {
     return (*ind_img_map)[mGrid[x * mNumWidth + y]];
 }
 
-uint16_t CompositeImage::getImageIdAt(int x, int y) {
+cid CompositeImage::getImageIdAt(int x, int y) {
     return mGrid[x * mNumWidth + y];
 }
 
@@ -139,7 +139,7 @@ color CompositeImage::getCropAvgColor(int left, int top, int width, int height) 
     return clr;
 }
 
-void CompositeImage::setImageAt(int x, int y, uint16_t img) {
+void CompositeImage::setImageAt(int x, int y, cid img) {
     mGrid[x * mNumWidth + y] = img;
 }
 
@@ -169,7 +169,7 @@ color CompositeImage::imageAvgColor(cv::Mat* image) {
     return c;
 }
 
-void CompositeImage::pushToGrid(uint16_t image) {
+void CompositeImage::pushToGrid(cid image) {
     mGrid.push_back(image);
 }
 
@@ -208,13 +208,13 @@ void CompositeImage::computeAvgColor() {
 void CompositeImage::coalesceBlocks(int max_size) {
     int ii;
     int ij;
-    uint16_t start_ind;
+    cid start_ind;
     uint32_t max_i;
     uint32_t max_j;
     for (int pi = 0; pi < mNumHeight - 1; pi++) {
         for (int pj = 0; pj < mNumWidth - 1; pj++) {
             start_ind = getImageIdAt(pi, pj);
-            if (start_ind == (uint16_t)-1 || start_ind == (uint16_t)-2) {
+            if (start_ind == (cid)-1 || start_ind == (cid)-2) {
                 continue;
             }
             ii = pi;

@@ -178,13 +178,13 @@ void ImageBuilder::prune(int ind, std::vector<std::vector<pos>> positions,
     if (positions.size() == 0) {
         return;
     }
-    uint16_t closest;
+    cid closest;
     int top;
     int left;
     int parts_w;
     int parts_h;
     int total = 0;
-    uint16_t image;
+    cid image;
     for(int i = 0; i < positions.size(); ++i) {
         image = i;
         if (positions[image].size() == 0) {
@@ -210,7 +210,7 @@ void ImageBuilder::prune(int ind, std::vector<std::vector<pos>> positions,
 }
 
 void ImageBuilder::createFinal(int ind, cv::Mat& concatted_image) {
-    std::vector<uint16_t>* grid = images[ind].getGrid();
+    std::vector<cid>* grid = images[ind].getGrid();
 
     std::cout << "concat started " << std::endl;
     concatAll(mNumHeight, mNumWidth, mFinalUpscale, mResizedImages, grid, concatted_image);
@@ -225,12 +225,12 @@ void ImageBuilder::createFinal(int ind, cv::Mat& concatted_image) {
     t.start();
     for (int i = 0; i < mNumHeight; i++) {
         for (int j = 0; j < mNumWidth; j++ ) {
-            uint16_t idx = (*grid)[i * mNumWidth + j];
+            cid idx = (*grid)[i * mNumWidth + j];
             if (idx == (uint16_t)-1) {
                 continue;
             }
             if (idx == (uint16_t)-2) {
-                uint16_t old_idx = (*grid)[li * mNumWidth + lj];
+                cid old_idx = (*grid)[li * mNumWidth + lj];
                 //std::cout << "pasted " << small_width * (j - lj) << " " << small_height * (j - lj) << " to "
                 // << small_width * j << " " << small_height * i << "\n";
 
@@ -282,16 +282,16 @@ int ImageBuilder::calculateSmallDim(int dim, int parts, float upscale) {
 
 void ImageBuilder::concatAll(int rows, int cols, float mFinalUpscale,
                                 std::vector<cv::Mat>& mResizedImages,
-                                std::vector<uint16_t>* grid, cv::Mat& full) {
+                                std::vector<cid>* grid, cv::Mat& full) {
     cv::Mat* harr = new cv::Mat[cols];
     cv::Mat* varr = new cv::Mat[rows];
-    uint16_t cur_img;
+    cid cur_img;
 
     Timer t;
     t.start();
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            uint16_t img = (*grid)[i * cols + j];
+            cid img = (*grid)[i * cols + j];
             if (img == (uint16_t)-1 || img == (uint16_t)-2) {
                 img = cur_img;
             } else {
