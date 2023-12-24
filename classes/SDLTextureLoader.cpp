@@ -10,7 +10,7 @@ SDLTextureLoader::SDLTextureLoader(ImageBuilder* img_bldr, std::initializer_list
 
 SDLTextureLoader::SDLTextureLoader(ImageBuilder* img_bldr, std::initializer_list<int> resoluts,
                                     SDL_Renderer* renderer, int load_threshold) : TextureLoader(img_bldr, resoluts, load_threshold) {
-    this->renderer = renderer;
+    this->mRenderer = renderer;
 }
 
 SDLTextureLoader::SDLTextureLoader(ImageBuilder* img_bldr, std::vector<int>& resoluts, SDL_Renderer* renderer)
@@ -19,7 +19,7 @@ SDLTextureLoader::SDLTextureLoader(ImageBuilder* img_bldr, std::vector<int>& res
 
 SDLTextureLoader::SDLTextureLoader(ImageBuilder* img_bldr, std::vector<int>& resoluts,
                                     SDL_Renderer* renderer, int load_threshold): TextureLoader(img_bldr, resoluts, load_threshold){
-    this->renderer = renderer;
+    this->mRenderer = renderer;
 }
 
 SDLTextureLoader::~SDLTextureLoader(){
@@ -36,7 +36,7 @@ void SDLTextureLoader::set_texture(CompositeImage* image, cv::Mat& pixels, uint8
         //done bcuz sometimes texture creation fails
         mipmaps[i][image->getId()] = NULL;
         while (mipmaps[i][image->getId()] == NULL) {
-            mipmaps[i][image->getId()] = SDL_CreateTexture(renderer,
+            mipmaps[i][image->getId()] = SDL_CreateTexture(mRenderer,
                                                SDL_PIXELFORMAT_BGR24,
                                                SDL_TEXTUREACCESS_STATIC,
                                                pixels.cols,

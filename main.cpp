@@ -85,13 +85,13 @@ int main( int argc, char* args[] ) {
                     starting_vars.local_transition_width, &test_loader, &(*images)[1], renderer, &stats_counter);
 
     float zoom = 1;
-    test.change_zoom(zoom);
+    test.changezoom(zoom);
 
     int crash = 0;
     std::vector<SDLGuimage*> bottom_level;
 
     clearScreen(renderer);
-    test.generate_image();
+    test.generateImage();
 
     Timer t;
     while(running) {
@@ -105,11 +105,11 @@ int main( int argc, char* args[] ) {
                 int x, y;
                 SDL_GetMouseState(&x, &y);
                 zoom = zoom + event.wheel.preciseY;
-                test.move_cam_pos_based_on_mouse(x, y, event.wheel.preciseY * 0.1 + 1);
-                test.increment_zoom(event.wheel.preciseY * 0.1 + 1);
+                test.moveCamPosBasedOnMouse(x, y, event.wheel.preciseY * 0.1 + 1);
+                test.incrementzoom(event.wheel.preciseY * 0.1 + 1);
 
                 clearScreen(renderer);
-                test.generate_image();
+                test.generateImage();
 
                 std::cout << "FPS " << 1000000.0/t.get() << std::endl;
             } else if (event.type == SDL_KEYDOWN) {
@@ -122,8 +122,8 @@ int main( int argc, char* args[] ) {
         }
 
         /*
-        test.increment_zoom(1.05);
-        test.generate_image();
+        test.incrementzoom(1.05);
+        test.generateImage();
         SDL_RenderPresent( renderer );
 
 

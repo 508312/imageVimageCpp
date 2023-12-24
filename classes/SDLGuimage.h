@@ -44,137 +44,137 @@ class SDLGuimage
         virtual ~SDLGuimage();
 
         /** Returns center of camera on the x axis. **/
-        float get_cam_x();
+        float getCamX();
         /** Returns center of camera on the y axis. **/
-        float get_cam_y();
+        float getCamY();
         /** Returns width of the window. **/
         float getWidth();
         /** Returns height of the window. **/
         float getHeight();
         /** Returns the row of this image as in its row in parent's grid. **/
-        int get_row();
+        int getRow();
         /** Returns the col of this image as in its col in parent's grid. **/
-        int get_col();
+        int getCol();
         /** Changes zoom to the @z value. **/
-        void change_zoom(float z);
+        void changezoom(float z);
         /** Changes cam pos to @x and @y. **/
-        void change_cam_pos(double x, double y);
+        void changeCamPos(double x, double y);
 
         /** Generates and renders image. **/
-        void generate_image();
+        void generateImage();
 
         /** Renders subdivided root image. **/
-        void create_detailed();
+        void createDetailed();
 
         /** Increments zoom by zd. **/
-        void increment_zoom(float zd);
+        void incrementzoom(float zd);
 
-        void set_local_transition_threshold(int thresh);
+        void setLocalTransitionThreshold(int thresh);
 
         /** Pans camera towards cursor **/
-        void move_cam_pos_based_on_mouse(double cur_x, double cur_y, float delta_z);
+        void moveCamPosBasedOnMouse(double cur_x, double cur_y, float delta_z);
 
         /** Calculates width of subdivided image. **/
-        float calculate_small_x();
+        float calculateSmallX();
         /** Calculates height of subdivided image. **/
-        float calculate_small_y();
+        float calculateSmallY();
 
         /** Switches to parent. Returns 1 on success or 0 if there is no parent to switch to. **/
-        bool switch_to_parent();
+        bool switchToParent();
 
         /** Deletes the following images, in turn becomes last image(hence, active)**/
-        void make_active();
+        void makeActive();
 
         /** Clears next images and images of children. **/
-        void clear_next_images();
+        void clearNextImages();
 
-        int get_max_row();
-        int get_max_col();
+        int getMaxRow();
+        int getMaxCol();
 
         /** Returns images being rendered. Leafs of the tree. Children at the bottom level. **/
-        void get_bottom_level(std::vector<SDLGuimage*>& res_vec);
+        void getBottomLevel(std::vector<SDLGuimage*>& res_vec);
 
         /** Adds next images captured by cam bounds. **/
-        void add_next_images();
+        void addNextImages();
         /** Adds child images from min indexes to max indexes. **/
-        void add_next_images(int min_x_ind, int min_y_ind, int max_x_ind, int max_y_ind);
+        void addNextImages(int min_x_ind, int min_y_ind, int max_x_ind, int max_y_ind);
 
         /** Calculates which indexes are captured by camera (non inclusive). **/
-        void calculate_bound_indexes(int& min_x_ind, int& min_y_ind, int& max_x_ind, int& max_y_ind);
+        void calculateBoundIndexes(int& min_x_ind, int& min_y_ind, int& max_x_ind, int& max_y_ind);
 
         /** Returns child images. **/
-        SDLGuimage* get_next(int row, int col);
+        SDLGuimage* getNext(int row, int col);
 
         /** Adds missing images caused by unzooming **/
         // TODO: WIP FUNCTION
-        void add_missing(int diff_row, int diff_col);
+        void addMissing(int diff_row, int diff_col);
 
     protected:
         /** Updates camera bounds. Camera is placed on width x height image. **/
-        void update_cam_bounds();
+        void updateCamBounds();
 
         /** Aligns a little bit when zooming back. **/
-        void adjust_back_transition(float zd, int row, int col, float cam_x, float cam_y);
+        void adjustBackTransition(float zd, int row, int col, float cam_x, float cam_y);
 
         /** Returns if the image is on screen and should be drawn. **/
-        bool should_be_drawn();
+        bool shouldBeDrawn();
 
     private:
         /** Calculates factor by which images should be warped on x. **/
-        float calculate_warp_scale_x();
+        float calculateWarpScaleX();
         /** Calculates factor by which images should be warped on y. **/
-        float calculate_warp_scale_y();
+        float calculateWarpScaleY();
 
         /** Current zoom of an image.**/
-        float zoom = 1;
+        float mZoom = 1;
 
         /** List of children Guimages.**/
-        std::vector<SDLGuimage> next_images;
+        std::vector<SDLGuimage> mNextImages;
         /** Flag if this image has children.**/
-        bool next_image_exists=false;
+        bool mNextImageExists=false;
 
         /** Bool indicating if an image should be drawn from it's parts.**/
-        bool should_be_detailed;
+        bool mShouldBeDetailed;
 
         /** Pointer to a parent Guimage. **/
-        SDLGuimage* parent;
+        SDLGuimage* mParent;
 
         /** Position on the grid of the parent composite image.**/
-        int self_row, self_col;
+        int mRow, mCol;
 
         /** Threshold of a zoom for when to change to rendering children guimages instead of parent one. **/
-        float local_transition_zoom;
+        float mLocalTransitionZoom;
 
         /** Cam's center's position. **/
-        double cam_x, cam_y;
+        double mCamX, mCamY;
 
         /** Cam's borders positions. **/
-        float cam_max_x, cam_max_y, cam_min_x, cam_min_y;
+        float mCamMaxX, mCamMaxY, mCamMinX, mCamMinY;
 
         /** Windows width and height. Persistent across all childen. **/
-        int width, height;
+        int mWidth, mHeight;
 
         /** Threshold for when to start rendering image from its parts.
             Doesn't have to be persistent, but I don't see cases when it's not. **/
-        int detail_threshold;
+        int mDetailThreshold;
 
-        int num_rows_in_next;
-        int num_cols_in_next;
+        int mNumRowsInNext;
+        int mNumColsInNext;
 
         /** Is the image off screen? **/
-        bool off_screen = false;
+        bool mIsOffScreen = false;
 
         /** Composite image belonging to the current Guimage. **/
-        CompositeImage* composite_image;
+        CompositeImage* mCompositeImage;
 
         /** Dynamically loads and unloads images of correct resolution. Persistent across all children.**/
-        SDLTextureLoader* texture_loader;
+        SDLTextureLoader* mTextureLoader;
 
         /** SDL renderer to draw images on window. Persistent across all children. **/
-        SDL_Renderer* renderer;
+        SDL_Renderer* mRenderer;
 
         /** Counts stats for how many images have been seen. Persistent across all children. **/
-        StatsCounter* stats_counter;
+        StatsCounter* mStatsCounter;
 };
 
 #endif // SDLGUIMAGE_H

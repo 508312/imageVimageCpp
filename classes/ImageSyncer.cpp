@@ -36,16 +36,16 @@ void ImageSyncer::reset() {
 
 void ImageSyncer::syncImage(SDLGuimage& img) {
     if (mAnchorW = 0) {
-        mAnchorX = img.get_cam_x();
-        mAnchorY = img.get_cam_y();
+        mAnchorX = img.getCamX();
+        mAnchorY = img.getCamY();
         mAnchorW = img.getWidth();
         mAnchorH = img.getHeight();
-        mAnchorRow = img.get_row();
-        mAnchorCol = img.get_col();
-        mAnchorNumCols = img.get_max_col();
-        mAnchorNumRows = img.get_max_row();
+        mAnchorRow = img.getRow();
+        mAnchorCol = img.getCol();
+        mAnchorNumCols = img.getMaxCol();
+        mAnchorNumRows = img.getMaxRow();
     } else {
-        //img.change_cam_pos(mAnchorX + mAnchorW * calculate_difference(mAnchorCol, img->get_col()),
-        //                    mAnchorY + mAnchorH * calculate_difference(mAnchorRow, img->get_row());
+        //img.changeCamPos(mAnchorX + mAnchorW * calculate_difference(mAnchorCol, img->getCol()),
+        //                    mAnchorY + mAnchorH * calculate_difference(mAnchorRow, img->getRow());
     }
 }

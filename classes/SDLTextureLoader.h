@@ -33,7 +33,7 @@ class SDLTextureLoader : public TextureLoader<SDL_Texture*>
 
     private:
         /** Renderer to which to load textures to. **/
-        SDL_Renderer* renderer;
+        SDL_Renderer* mRenderer;
 };
 
 #endif // SDLTEXTURELOADER_H
