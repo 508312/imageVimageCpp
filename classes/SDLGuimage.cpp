@@ -32,7 +32,7 @@ SDLGuimage::SDLGuimage( int w, int h, int row, int col, int detail_thresh, int l
     this->mParent = parent;
     this->mStatsCounter = stats_cntr;
     if (stats_cntr != nullptr) {
-        this->mStatsCounter->add_seen_image(starting_image);
+        this->mStatsCounter->addSeenImage(starting_image);
     }
 
     mRow = row;
@@ -166,7 +166,7 @@ void SDLGuimage::createDetailed() {
 
             //TODO: remove hardcode lol
             if (mZoom > mLocalTransitionZoom/8) {
-                mStatsCounter->add_seen_image(img);
+                mStatsCounter->addSeenImage(img);
             }
         }
     }

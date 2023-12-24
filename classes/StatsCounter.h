@@ -11,32 +11,32 @@ class StatsCounter
         StatsCounter(std::vector<CompositeImage>* images);
         virtual ~StatsCounter();
         /** Adds image which was seen on canvas **/
-        void add_seen_image(CompositeImage* img);
+        void addSeenImage(CompositeImage* img);
         /** Returns images seen on canvas **/
-        int get_seen();
+        int getSeen();
         /** Gets total amount of images in the set **/
-        int get_total();
+        int getTotal();
         /** Calculates total amount of images **/
-        void calc_totals();
+        void calculateTotals();
 
         /** Calculates how many unique images are reachable from the specified image **/
-        int calc_reachable_from_img(CompositeImage* img);
+        int calculateReachableFromImage(CompositeImage* img);
     protected:
 
     private:
         /** Keeps track of unique images in each image **/
-        std::unordered_map<int, std::unordered_set<int>> unique_images;
+        std::unordered_map<int, std::unordered_set<int>> mUniqueImages;
         /** Keeps track of all images **/
-        std::unordered_set<int> all_images;
+        std::unordered_set<int> mAllImages;
 
         /** Name to index mapping **/
-        std::unordered_map<std::string, int> str_index;
+        std::unordered_map<std::string, int> mStrIndex;
 
         /** Total images in the set **/
-        int total = 0;
+        int mTotal = 0;
 
         /** Seen images in the set **/
-        int seen = 0;
+        int mSeen = 0;
 };
 
 #endif // STATSCOUNTER_H

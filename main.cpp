@@ -77,9 +77,9 @@ int main( int argc, char* args[] ) {
     StatsCounter stats_counter(images);
     std::cout << "stats took " << t1.get() << std::endl;
 
-    std::cout << "total used: " << stats_counter.get_total()
+    std::cout << "total used: " << stats_counter.getTotal()
      << " total images: " << images->size() <<
-     " reachable from start: " << stats_counter.calc_reachable_from_img(&(*images)[0]) << std::endl;
+     " reachable from start: " << stats_counter.calculateReachableFromImage(&(*images)[0]) << std::endl;
 
     SDLGuimage test(starting_vars.image_width, starting_vars.image_height, starting_vars.detailed_image_width,
                     starting_vars.local_transition_width, &test_loader, &(*images)[1], renderer, &stats_counter);
@@ -114,8 +114,8 @@ int main( int argc, char* args[] ) {
                 std::cout << "FPS " << 1000000.0/t.get() << std::endl;
             } else if (event.type == SDL_KEYDOWN) {
                 if (event.key.keysym.sym == SDLK_f) {
-                    std::cout << "Seen " << stats_counter.get_seen() <<
-                    " images out of " <<  stats_counter.get_total() << std::endl;
+                    std::cout << "Seen " << stats_counter.getSeen() <<
+                    " images out of " <<  stats_counter.getTotal() << std::endl;
                 }
 
             }
