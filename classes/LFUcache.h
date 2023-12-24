@@ -15,7 +15,7 @@ struct node {
 class LFUcache
 {
     public:
-        LFUcache(int capacity);
+        LFUcache(int mCapacity);
         virtual ~LFUcache();
 
         /** puts the selected index in the LFU cache, returns removed item or -1 if nothing has been removed. **/
@@ -25,29 +25,29 @@ class LFUcache
 
     private:
         /** moves the selected node to the top(right) of the linked list. **/
-        void insert_start(node* p_node);
+        void insertStart(node* p_node);
         /** move the selected node to the bot(left) of the linked lost. **/
-        void insert_back(node* p_node);
+        void insertBack(node* p_node);
         /** removes first node. **/
-        void remove_back();
+        void removeBack();
         /** removes node from arbitrary position. Doesn't delete it **/
-        void remove_node(node* p_node);
+        void removeNode(node* p_node);
 
         /** first node of the linked list. **/
-        node* p_start_node = nullptr;
+        node* mStartNode = nullptr;
         /** last node of the linked list. **/
-        node* p_back_node = nullptr;
+        node* mBackNode = nullptr;
 
-        /** current capacity of this lfu cache. **/
-        int capacity;
-        /** max capacity of this lfu cache. **/
-        int max_capacity;
+        /** current mCapacity of this lfu cache. **/
+        int mCapacity;
+        /** max mCapacity of this lfu cache. **/
+        int mMaxCapacity;
 
         /** Index to node mapping. **/
         std::unordered_map<int, node*> mapping;
 
         /** prints useful information. **/
-        void debug_print_info();
+        void debugPrintInfo();
 };
 
 #endif // LFUCACHE_H
