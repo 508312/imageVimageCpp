@@ -21,6 +21,7 @@ SDLGuimage::SDLGuimage( int w, int h, int row, int col, int detail_thresh, int l
     mZoom = 0;
 
     mDetailThreshold = detail_thresh;
+    mBlendThreshold = 6000;
 
     mTextureLoader = texloader;
 
@@ -247,7 +248,9 @@ void SDLGuimage::generateImage() {
 
     if (mShouldBeDetailed) {
         createDetailed();
-    } else {
+    }
+
+    if (mZoom * mWidth < mBlendThreshold) {
         int img_w, img_h;
         float difference_x;
         float difference_y;
@@ -262,8 +265,21 @@ void SDLGuimage::generateImage() {
                         std::max(std::round(-mCamMinY * mZoom), 0.0f),
                         std::round(real_w * mZoom), std::round(real_h * mZoom)};
         SDL_Rect srcrect{std::round(mCamMinX * difference_x), std::round(mCamMinY * difference_y),
-         std::round((mCamMaxX - mCamMinX) * difference_x), std::round((mCamMaxY - mCamMinY)  * difference_y)};
+                        std::round((mCamMaxX - mCamMinX) * difference_x), std::round((mCamMaxY - mCamMinY)  * difference_y)};
+
+        double t = (mZoom*mWidth - mDetailThreshold)/(mBlendThreshold - mDetailThreshold);
+        //std::cout << "t is  " << t << " z*w " << mZoom*mWidth << std::endl;
+        t = std::clamp(t, 0.0, 1.0);
+        t = t*t*(3 - 2*t);
+        int factor = 255 * (1-t) + 0 * t;
+
+        SDL_SetTextureBlendMode(image, SDL_BLENDMODE_BLEND);
+        SDL_SetTextureAlphaMod(image, factor);
+
         SDL_RenderCopy(mRenderer, image, &srcrect, &rect);
+
+        SDL_SetTextureBlendMode(image, SDL_BLENDMODE_NONE);
+        SDL_SetTextureAlphaMod(image, 255);
     }
 }
 

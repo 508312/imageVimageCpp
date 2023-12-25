@@ -94,6 +94,7 @@ int main( int argc, char* args[] ) {
     test.generateImage();
 
     Timer t;
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     while(running) {
         while(SDL_PollEvent(&event) != 0)
         {
@@ -156,11 +157,11 @@ void initialize_starting_variables(int argc, char** args, starting_variables& va
     vars.prune_threshold = 3;
     vars.closeness_threshold = 0;
     vars.compiled_upscale = 1;
-    vars.detailed_image_width = 2000;
+    vars.detailed_image_width = 3000;
     vars.local_transition_width = 1600;
     vars.resolutions = {1600, 800, 400, 200, 100, 50, 25, 10, 5};
     vars.render_type = "software";
-    vars.folder = "imgsmall";
+    vars.folder = "qats_reduced";
 
 
     for (int i = 1; i < argc; i++) {

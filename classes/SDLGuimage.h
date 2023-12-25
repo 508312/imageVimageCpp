@@ -157,6 +157,7 @@ class SDLGuimage
         /** Threshold for when to start rendering image from its parts.
             Doesn't have to be persistent, but I don't see cases when it's not. **/
         int mDetailThreshold;
+        int mBlendThreshold;
 
         int mNumRowsInNext;
         int mNumColsInNext;
