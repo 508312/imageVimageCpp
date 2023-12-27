@@ -223,22 +223,49 @@ void ImageBuilder::createFinal(int ind, cv::Mat& concatted_image) {
     int lj = 0;
     Timer t;
     t.start();
+
+    /*
     for (int i = 0; i < mNumHeight; i++) {
         for (int j = 0; j < mNumWidth; j++ ) {
             cid idx = (*grid)[i * mNumWidth + j];
-            if (idx == CID_BODY) {
-                continue;
-            }
-            if (idx == CID_TOP_CORNER) {
+            if (idx < CID_RESERVED)
+                std::cout << idx << " ";
+            else
+                std::cout << "X ";
+        }
+        std::cout << "\n";
+    }
+    */
+
+
+
+    std::vector<std::vector<int>> used;
+    used.resize(mNumHeight);
+
+    for (int i = 0; i < mNumHeight; i++) {
+        for (int j = 0; j < mNumWidth; j++ ) {
+            cid idx = (*grid)[i * mNumWidth + j];
+            if (idx == CID_CORNER) {
                 cid old_idx = (*grid)[li * mNumWidth + lj];
                 //std::cout << "pasted " << small_width * (j - lj) << " " << small_height * (j - lj) << " to "
                 // << small_width * j << " " << small_height * i << "\n";
+                uint16_pair start_pos = images[ind].findStart(i, j);
+                if (std::find(used[start_pos.i].begin(), used[start_pos.i].end(), start_pos.j) != used[start_pos.i].end()) {
+                    continue;
+                }
+                used[start_pos.i].push_back(start_pos.j);
+
+                int side = std::max(i - start_pos.i, j - start_pos.j);
 
                 cv::resize(mResizedBig[old_idx], tmp,
-                    cv::Size(small_width * (j - lj + 1), small_height * (j - lj + 1)), 0, 0);
+                    cv::Size(small_width * (side + 1), small_height * (side + 1)), 0, 0);
 
-                destRoi = concatted_image(cv::Rect(small_width * lj, small_height * li, small_width * (j - lj + 1), small_height * (j - lj + 1)));
+                destRoi = concatted_image(cv::Rect(small_width * start_pos.j, small_height * start_pos.i,
+                                                    small_width * (side + 1), small_height * (side + 1)));
                 tmp.copyTo(destRoi);
+            }
+            if (idx >= CID_RESERVED) {
+                continue;
             }
             li = i;
             lj = j;
@@ -315,11 +342,10 @@ int ImageBuilder::findClosestImage(int ind, color& clr, std::vector<CompositeIma
     int distance;
 
     for (int i = 0; i < imgs->size(); i++) {
-        /*
-        if (i == ind) {
-            continue;
-        }
-        */
+        //if (i == ind) {
+        //    continue;
+        //}
+
         distance = (*imgs)[i]->distanceToColor(clr);
         if (distance < best_distance) {
             best_index = i;

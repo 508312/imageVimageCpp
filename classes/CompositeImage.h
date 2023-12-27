@@ -5,15 +5,20 @@
 #include <color.h>
 #include <opencv2/core/core.hpp>
 
-#define CID_BODY (cid)-1
+#define CID_EMPTY (cid)-1
 #define CID_BORDER (cid)-2
-#define CID_TOP_CORNER (cid)-3
+#define CID_CORNER (cid)-3
 
 // Lowest reserved index of cids.
 #define CID_RESERVED (cid)-3
 
 /** Composite image identifier. **/
 typedef uint16_t cid;
+
+struct uint16_pair {
+    uint16_t i;
+    uint16_t j;
+};
 
 class CompositeImage {
     public:
@@ -92,6 +97,9 @@ class CompositeImage {
 
         /** Coalesces images into blocks. **/
         void coalesceBlocks(int max_size);
+
+        /** Finds starting indexes from passed corner. **/
+        uint16_pair findStart(int row, int col);
 
     protected:
 

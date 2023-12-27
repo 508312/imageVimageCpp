@@ -50,9 +50,6 @@ void SDLTextureLoader::setTexture(CompositeImage* image, cv::Mat& pixels, uint8_
         if (SDL_UpdateTexture(mMipmaps[i][image->getId()], NULL, (void*)pixels.data, pixels.step1()) != 0) {
             std::cout << "Writing pixels to texture failed, error " << SDL_GetError() << std::endl;
         }
-        if (SDL_SetTextureAlphaMod(mMipmaps[i][image->getId()], 16) != 0) {
-            std::cout << "Error on changing alpha" << std::endl;
-        }
     }
 }
 

@@ -161,7 +161,7 @@ void initialize_starting_variables(int argc, char** args, starting_variables& va
     vars.local_transition_width = 1600;
     vars.resolutions = {1600, 800, 400, 200, 100, 50, 25, 10, 5};
     vars.render_type = "software";
-    vars.folder = "qats_reduced";
+    vars.folder = "imgsmall";
 
 
     for (int i = 1; i < argc; i++) {

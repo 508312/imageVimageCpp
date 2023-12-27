@@ -205,6 +205,53 @@ void CompositeImage::computeAvgColor() {
     }
 }
 
+uint16_pair CompositeImage::findStart(int row, int col) {
+    assert(getImageIdAt(row, col) == CID_CORNER);
+    int left = std::max(col - 1, 0);
+    int right = std::min(col + 1, mNumWidth - 1);
+    int down = std::min(row + 1, mNumHeight - 1);
+    int up = std::max(row - 1, 0);
+
+    // 2 by 2
+    if (getImageIdAt(up, col) < CID_RESERVED &&
+        getImageIdAt(row, right) == CID_CORNER &&
+        getImageIdAt(up, right) == CID_CORNER) {
+        return uint16_pair{up, col};
+    }
+    if (getImageIdAt(up, left) < CID_RESERVED &&
+        getImageIdAt(row, left) == CID_CORNER &&
+        getImageIdAt(up, col) == CID_CORNER) {
+        return uint16_pair{up, left};
+    }
+    if (getImageIdAt(row, left) < CID_RESERVED &&
+        getImageIdAt(down, col) == CID_CORNER &&
+        getImageIdAt(down, left) == CID_CORNER) {
+        return uint16_pair{row, left};
+    }
+
+
+    int dir = -1;
+    int width = 0;
+    if (getImageIdAt(up, col) == CID_BORDER &&
+        getImageIdAt(row, right) == CID_BORDER &&
+        getImageIdAt(up, right) == CID_EMPTY) {
+        dir = 1;
+    }
+    width += dir;
+    while (getImageIdAt(row, col + width) == CID_BORDER) {
+        width += dir;
+    }
+    // BL
+    if (dir == 1) {
+        return uint16_pair{row - width, col};
+    }
+    // BR
+    if (getImageIdAt(row, col + width) == CID_CORNER) {
+        return uint16_pair{row + width, col + width};
+    }
+    return uint16_pair{row, col + width};
+}
+
 void CompositeImage::coalesceBlocks(int max_size) {
     int ii;
     int ij;
@@ -270,31 +317,21 @@ void CompositeImage::coalesceBlocks(int max_size) {
             if (max_i - pi <= 1) {
                 continue;
             }
-            //std::cout << "max i j " << max_i << max_j << std::endl;
-            //std::cout << "p i j " << pi << pj << std::endl;
-            //std::cout << "doing last" << std::endl;
+
             for (int i = pi; i < max_i; i++) {
                 for (int j = pj; j < max_j; j++) {
-                    if (i == pi && j == pj) {
-                        continue;
-                    }
-                    //if (i == pi + 1 || j == pj + 1) {
-                    //    setImageAt(i, j, -3);
-                    if (i == pi && j == max_j - 1) {
-                        setImageAt(i, j, CID_TOP_CORNER);
+                    if (i == pi || j == pj || j == max_j - 1 || i == max_i - 1) {
+                        setImageAt(i, j, CID_BORDER);
                     } else {
-                        setImageAt(i, j, CID_BODY);
+                        setImageAt(i, j, CID_EMPTY);
                     }
                 }
             }
-            //std::cout << "finished last" << std::endl;
+
+            setImageAt(pi, pj, start_ind);
+            setImageAt(pi, max_j-1, CID_CORNER);
+            setImageAt(max_i-1, pj, CID_CORNER);
+            setImageAt(max_i-1, max_j-1, CID_CORNER);
         }
     }
 }
-
-/*
-AAABAA
-AAAAAA
-ABAAAA
-
-*/

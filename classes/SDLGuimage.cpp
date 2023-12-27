@@ -21,7 +21,7 @@ SDLGuimage::SDLGuimage( int w, int h, int row, int col, int detail_thresh, int l
     mZoom = 0;
 
     mDetailThreshold = detail_thresh;
-    mBlendThreshold = 6000;
+    mBlendThreshold = 8000;
 
     mTextureLoader = texloader;
 
@@ -115,7 +115,7 @@ void SDLGuimage::createDetailed() {
 
     CompositeImage* img;
     SDL_Texture* tex;
-    SDL_Rect texrect = {0, 0, std::round(theoretical_x*mZoom) + 1, std::round(theoretical_y*mZoom) + 1}; // TODO:DELETE GRID ARTIFACTS robust way
+    SDL_Rect texrect = {0, 0, std::round(theoretical_x*mZoom), std::round(theoretical_y*mZoom)};
     SDL_Rect srcrect = {NULL, NULL, NULL, NULL};
 
     float x_start = 0;
@@ -158,10 +158,6 @@ void SDLGuimage::createDetailed() {
             srcrect.y = std::round(y_start * difference_y);
             srcrect.w = std::round((x_end - x_start) * difference_x);
             srcrect.h = std::round((y_end - y_start) * difference_y);
-
-            //std::cout << " texres " << tex_w << " " << tex_h << std::endl;
-            //std::cout << i << " " << j << " texrectx " << texrect.x << " " << texrect.y << " " << texrect.w << " " << texrect.h <<  std::endl;
-            //std::cout << i << " " << j << " srcrect " << srcrect.x << " " << srcrect.y << " " << srcrect.w << " " << srcrect.h << std::endl;
 
             SDL_RenderCopy(mRenderer, tex, &srcrect, &texrect);
 
