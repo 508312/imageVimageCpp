@@ -98,6 +98,10 @@ class CompositeImage {
         /** Coalesces images into blocks. **/
         void coalesceBlocks(int max_size);
 
+        int getCoalescedWidth(int row, int col);
+
+        uint16_pair findCorner(int row, int col);
+
         /** Finds starting indexes from passed corner. **/
         uint16_pair findStart(int row, int col);
 

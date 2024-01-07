@@ -66,6 +66,8 @@ class SDLGuimage
         /** Renders subdivided root image. **/
         void createDetailed();
 
+        void createDetailedCoalesced();
+
         /** Increments zoom by zd. **/
         void incrementzoom(float zd);
 
@@ -126,7 +128,7 @@ class SDLGuimage
         float calculateWarpScaleY();
 
         /** Current zoom of an image.**/
-        float mZoom = 1;
+        double mZoom = 1;
 
         /** List of children Guimages.**/
         std::vector<SDLGuimage> mNextImages;
@@ -143,7 +145,7 @@ class SDLGuimage
         int mRow, mCol;
 
         /** Threshold of a zoom for when to change to rendering children guimages instead of parent one. **/
-        float mLocalTransitionZoom;
+        double mLocalTransitionZoom;
 
         /** Cam's center's position. **/
         double mCamX, mCamY;

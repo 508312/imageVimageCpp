@@ -61,7 +61,7 @@ void ImageBuilder::buildImages() {
 
     cv::Mat tmp;
     std::for_each(std::execution::seq, indexes.begin(), indexes.end(), [&](int i){
-                  //images[i].coalesceBlocks(3000);
+                  images[i].coalesceBlocks(50);
                   createFinal(i, tmp);});
 
 

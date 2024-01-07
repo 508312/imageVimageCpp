@@ -206,7 +206,19 @@ void CompositeImage::computeAvgColor() {
 }
 
 uint16_pair CompositeImage::findStart(int row, int col) {
+    //if (getImageIdAt(row, col) == CID_EMPTY) {
+    //    while (getImageIdAt(row, col) != CID_BORDER) {
+    //        col -= 1;
+    //    }
+    //    while (getImageIdAt(row, col) >= CID_RESERVED) {
+    //        row -= 1;
+    //    }
+    //    return uint16_pair(row, col);
+    //}
+
     assert(getImageIdAt(row, col) == CID_CORNER);
+
+
     int left = std::max(col - 1, 0);
     int right = std::min(col + 1, mNumWidth - 1);
     int down = std::min(row + 1, mNumHeight - 1);
@@ -250,6 +262,54 @@ uint16_pair CompositeImage::findStart(int row, int col) {
         return uint16_pair{row + width, col + width};
     }
     return uint16_pair{row, col + width};
+}
+
+uint16_pair CompositeImage::findCorner(int row, int col) {
+    while (getImageIdAt(row, col) != CID_BORDER) {
+        row += 1;
+    }
+
+    int right = std::min(col + 1, mNumWidth - 1);
+    int left = std::max(col - 1, 0);
+
+    if (getImageIdAt(row, right) == CID_EMPTY ||
+        getImageIdAt(row, left) == CID_EMPTY) {
+        row += 1;
+        while (getImageIdAt(row, col) != CID_CORNER) {
+            row += 1;
+        }
+        return uint16_pair{row, col};
+    }
+
+    col += 1;
+    while (getImageIdAt(row, col) != CID_CORNER) {
+        col += 1;
+    }
+    return uint16_pair{row, col};
+}
+
+
+int CompositeImage::getCoalescedWidth(int row, int col) {
+    int right = std::min(col + 1, mNumWidth - 1);
+    int down = std::min(row + 1, mNumHeight - 1);
+
+    if ((getImageIdAt(down, col) == CID_CORNER &&
+          getImageIdAt(row, right) == CID_CORNER &&
+          getImageIdAt(down, right) == CID_CORNER)) {
+        return 2;
+    }
+
+    if (!(getImageIdAt(down, col) == CID_BORDER &&
+          getImageIdAt(row, right) == CID_BORDER &&
+          getImageIdAt(down, right) == CID_EMPTY)) {
+        return 1;
+    }
+    int width = 1;
+    while (getImageIdAt(row, col + width) == CID_BORDER) {
+        width += 1;
+    }
+
+    return width + 1;
 }
 
 void CompositeImage::coalesceBlocks(int max_size) {

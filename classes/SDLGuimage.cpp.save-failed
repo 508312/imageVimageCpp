@@ -27,7 +27,7 @@ SDLGuimage::SDLGuimage( int w, int h, int row, int col, int detail_thresh, int l
 
     mCompositeImage = starting_image;
 
-    mLocalTransitionZoom = (1600/50)/calculateSmallX();
+    mLocalTransitionZoom = 200/calculateSmallX();
 
     this->mRenderer = renderer;
     this->mParent = parent;
@@ -135,33 +135,29 @@ void SDLGuimage::createDetailedCoalesced() {
         for (int j = min_x_ind; j < max_x_ind; j++) {
             int idx = mCompositeImage->getImageIdAt(i, j);
 
-            if (idx == CID_EMPTY || idx == CID_BORDER) {
+            if (idx == CID_EMPTY) {
                 continue;
             }
-
             int si = i;
             int sj = j;
             int width = mCompositeImage->getCoalescedWidth(i, j);
 
-            //if (idx == CID_BORDER) {
-            //    uint16_pair corner_pos = mCompositeImage->findCorner(i, j);
-            //    si = corner_pos.i;
-            //    sj = corner_pos.j;
-            //   idx = mCompositeImage->getImageIdAt(si, sj);
-            //}
+            if (idx == CID_BORDER) {
+                uint16_pair corner_pos = mCompositeImage->findCorner(i, j);
+                si = corner_pos.i;
+                sj = corner_pos.j;
+                idx = mCompositeImage->getImageIdAt(si, sj);
+            }
 
             if (idx == CID_CORNER) {
                 uint16_pair start_pos = mCompositeImage->findStart(si, sj);
                 if (std::find(used[start_pos.i].begin(), used[start_pos.i].end(), start_pos.j) != used[start_pos.i].end()) {
                     continue;
                 }
+                used[start_pos.i].push_back(start_pos.j);
                 width = std::max(si - start_pos.i, sj - start_pos.j) + 1;
                 si = start_pos.i;
                 sj = start_pos.j;
-            }
-
-            if (width > 1) {
-                used[si].push_back(sj);
             }
 
             texrect.x = std::max(0.0, std::round((sj*theoretical_x - mCamMinX) * mZoom));
@@ -315,22 +311,19 @@ void SDLGuimage::addNextImages(int min_x_ind, int min_y_ind, int max_x_ind, int 
         for (int j = min_x_ind; j < max_x_ind; j++) {
             int idx = mCompositeImage->getImageIdAt(i, j);
 
+            if (idx >= CID_RESERVED && idx != CID_CORNER) {
+                continue;
+            }
             int si = i;
             int sj = j;
             int width = mCompositeImage->getCoalescedWidth(i, j);
 
-            if (idx == CID_EMPTY || idx == CID_BORDER) {
-                uint16_pair corner_pos = mCompositeImage->findCorner(i, j);
-                si = corner_pos.i;
-                sj = corner_pos.j;
-                idx = mCompositeImage->getImageIdAt(si, sj);
-            }
-
             if (idx == CID_CORNER) {
-                uint16_pair start_pos = mCompositeImage->findStart(si, sj);
-                width = std::max(si - start_pos.i, sj - start_pos.j) + 1;
+                uint16_pair start_pos = mCompositeImage->findStart(i, j);
+
                 si = start_pos.i;
                 sj = start_pos.j;
+                width = std::max(i - start_pos.i, j - start_pos.j) + 1;
             }
 
             if (std::find_if(mNextImages.begin(), mNextImages.end(),
@@ -347,8 +340,8 @@ void SDLGuimage::addNextImages(int min_x_ind, int min_y_ind, int max_x_ind, int 
             //std::cout << "ADDING " << si << " " << sj << " with " << new_x << " " << new_y << std::endl;
 
 
-            new_x = (mCamX - sj*theoretical_x) * mWidth/calculateSmallX() / width;
-            new_y = (mCamY - si*theoretical_y) * mHeight/calculateSmallY() / width;
+            new_x = (mCamX - sj*theoretical_x) * mWidth/calculateSmallX();
+            new_y = (mCamY - si*theoretical_y) * mWidth/calculateSmallX();
 
             mNextImages[mNextImages.size() - 1].changezoom(new_zoom * width);
             mNextImages[mNextImages.size() - 1].changeCamPos(new_x, new_y);
@@ -369,6 +362,7 @@ void SDLGuimage::generateImage() {
         }
 
         for (int i = 0; i < indexes_to_erase.size(); i++) {
+            std::cout << "erased" << std::endl;
             (mNextImages.begin() + indexes_to_erase[i] - i)->clearNextImages();
             mNextImages.erase(mNextImages.begin() + indexes_to_erase[i] - i);
         }
@@ -448,7 +442,7 @@ void SDLGuimage::updateCamBounds(){
     mCamMaxY = mCamY + half_h;
     mCamMinY = mCamY - half_h;
     if (mCamMaxX < 0 || mCamMinX > mWidth || mCamMaxY < 0 || mCamMinY > mHeight) {
-        //std::cout << " WENT OFF SCREEN " << mRow << " " << mCol << std::endl;
+        std::cout << " WENT OFF SCREEN " << mRow << " " << mCol << std::endl;
         mIsOffScreen = true;
     }
 }
